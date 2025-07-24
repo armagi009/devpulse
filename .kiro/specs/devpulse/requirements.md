@@ -4,6 +4,8 @@
 
 DevPulse is an AI-native development analytics platform that transforms GitHub data into actionable insights for developers and teams. The flagship feature is "Burnout Radar" - an AI system that predicts and prevents developer burnout through behavioral pattern analysis. The platform serves developers seeking to understand their productivity patterns, teams optimizing collaboration, and managers needing early warning systems to support their teams.
 
+The platform includes a schema adapter layer for handling database schema differences, a mock authentication and data system for development and testing, and comprehensive UI/UX improvements for a consistent user experience.
+
 ## Requirements
 
 ### Requirement 1: User Authentication and GitHub Integration
@@ -135,3 +137,42 @@ DevPulse is an AI-native development analytics platform that transforms GitHub d
 4. IF screen size is small THEN the system SHALL prioritize most important information
 5. WHEN using touch gestures THEN the system SHALL respond appropriately to mobile interactions
 6. WHEN loading on mobile THEN the system SHALL optimize for mobile network conditions
+
+### Requirement 11: Schema Compatibility and Adaptation
+
+**User Story:** As a developer, I want the application to handle database schema differences gracefully, so that I can work with different versions of the application without database errors.
+
+#### Acceptance Criteria
+
+1. WHEN accessing database models THEN the system SHALL use a schema adapter layer to handle potential schema differences
+2. WHEN a database relation is missing THEN the system SHALL provide appropriate fallbacks
+3. WHEN starting the application THEN the system SHALL check for schema compatibility
+4. IF schema incompatibilities are detected THEN the system SHALL log warnings and continue with fallbacks
+5. WHEN using fallbacks THEN the system SHALL maintain core functionality
+6. WHEN database errors occur THEN the system SHALL provide clear error messages and recovery options
+
+### Requirement 12: Mock Authentication and Test Data
+
+**User Story:** As a developer, I want to use mock authentication and test data, so that I can develop and test the application without real GitHub credentials.
+
+#### Acceptance Criteria
+
+1. WHEN in development mode THEN the system SHALL provide an option to use mock authentication
+2. WHEN mock authentication is enabled THEN the system SHALL simulate the GitHub OAuth flow
+3. WHEN using mock mode THEN the system SHALL provide realistic test data
+4. WHEN in mock mode THEN the system SHALL clearly indicate this status in the UI
+5. WHEN generating mock data THEN the system SHALL create patterns that trigger different analytics scenarios
+6. WHEN using mock mode THEN the system SHALL allow switching between different mock user profiles
+
+### Requirement 13: Role-Based Access Control
+
+**User Story:** As an administrator, I want to define user roles with appropriate permissions, so that users can access features relevant to their responsibilities.
+
+#### Acceptance Criteria
+
+1. WHEN defining user roles THEN the system SHALL support Developer, Team Lead, and Administrator roles
+2. WHEN a user accesses features THEN the system SHALL enforce role-based access controls
+3. WHEN displaying UI components THEN the system SHALL conditionally render based on user permissions
+4. WHEN accessing sensitive data THEN the system SHALL verify user permissions
+5. WHEN in mock mode THEN the system SHALL simulate different user roles
+6. WHEN managing teams THEN the system SHALL respect role hierarchies

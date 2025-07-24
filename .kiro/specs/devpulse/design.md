@@ -20,6 +20,11 @@ graph TD
     APIRoutes --> AIServices[OpenAI Services]
     GitHubAPI --> GitHubRateLimit[Rate Limiting & Caching]
     Database --> BackgroundJobs[Background Processing]
+    Database --> SchemaAdapter[Schema Adapter Layer]
+    GitHubAPI --> MockGitHubAPI[Mock GitHub API]
+    APIRoutes --> ModeManager[Mode Manager]
+    ModeManager --> MockAuth[Mock Authentication]
+    ModeManager --> LiveAuth[Live Authentication]
 ```
 
 ### Key Architectural Decisions
@@ -30,6 +35,9 @@ graph TD
 4. **Background Processing**: Implementing a job queue for long-running operations like data sync
 5. **Caching Layer**: Multi-level caching for GitHub API responses and computed analytics
 6. **Graceful Degradation**: Fallback mechanisms when external services are unavailable
+7. **Schema Adapter Layer**: Abstraction layer to handle database schema differences between versions
+8. **Mock/Live Mode Management**: System for toggling between live GitHub integration and mock data
+9. **Role-Based Access Control**: Comprehensive permission system for different user roles
 
 ## Components and Interfaces
 
@@ -147,6 +155,10 @@ The database schema follows the PostgreSQL design outlined in the specification,
 5. **issues**: Issue tracking and metadata
 6. **burnout_metrics**: Daily burnout risk factors and scores
 7. **team_insights**: Team-level aggregated metrics
+8. **roles**: User roles and associated permissions
+9. **permissions**: Granular access control permissions
+10. **app_mode**: Application mode configuration (live/mock)
+11. **mock_data_sets**: Stored mock data for development and testing
 
 ### Prisma Schema
 
@@ -274,17 +286,21 @@ interface Retrospective {
    - When GitHub API is unavailable: Show cached data with timestamp
    - When AI services fail: Fall back to statistical analysis
    - When database is slow: Show partial data with loading indicators
+   - When schema incompatibilities exist: Use schema adapter layer with fallbacks
 
 2. **Error Categories**
    - API Errors: Rate limits, authentication, network issues
    - Processing Errors: Data transformation, calculation errors
-   - Database Errors: Query failures, connection issues
+   - Database Errors: Query failures, connection issues, schema incompatibilities
    - AI Service Errors: OpenAI API failures, token limits
+   - Mode Transition Errors: Issues when switching between live/mock modes
 
 3. **User-Facing Error Handling**
    - Clear error messages with actionable steps
    - Automatic retry mechanisms with progress indicators
    - Fallback UI components for failed data loads
+   - Mode boundary warnings when mixing mock and live data
+   - Visual indicators for mock/demo mode
 
 ### Error Handling Implementation
 
@@ -363,6 +379,217 @@ const rateLimitAwareCall = async <T>(
 - **MSW (Mock Service Worker)**: API mocking
 - **Playwright**: End-to-end testing
 - **Lighthouse**: Performance testing
+
+## Schema Adapter Layer
+
+### Purpose and Design
+
+The Schema Adapter Layer provides an abstraction between the application code and the database schema, allowing the application to work with different schema versions. This is particularly important for handling schema differences between the main application and feature branches or when deploying updates that modify the database schema.
+
+```mermaid
+graph TD
+    AppCode[Application Code] --> SchemaAdapter[Schema Adapter Layer]
+    SchemaAdapter --> PrismaORM[Prisma ORM]
+    PrismaORM --> Database[Database]
+    SchemaAdapter --> Fallbacks[Fallback Mechanisms]
+    SchemaAdapter --> EnvVars[Environment Variables]
+```
+
+### Key Components
+
+1. **Adapter Functions**
+   - Safe model access with error handling
+   - Relation handling with fallbacks
+   - Permission checking with defaults
+
+2. **Schema Initialization**
+   - Database connection verification
+   - Model existence checking
+   - Environment variable configuration
+
+3. **Compatibility Checking**
+   - Pre-startup schema validation
+   - Warning generation for incompatibilities
+   - Guidance for schema updates
+
+### Implementation Example
+
+```typescript
+// Schema adapter for safely accessing models with potential schema differences
+export async function getRetrospective(id: string) {
+  try {
+    // First try to get the retrospective without including relations
+    const retrospective = await prisma.retrospective.findUnique({
+      where: { id },
+    });
+    
+    return retrospective;
+  } catch (error) {
+    console.error('Error fetching retrospective:', error);
+    return null;
+  }
+}
+
+// Safe permission checking with fallbacks
+export async function hasPermission(userId: string, permission: string, defaultRoles: Record<string, string[]> = {}) {
+  try {
+    // Get user
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return false;
+    }
+
+    // In mock mode, assume all permissions are granted
+    if (process.env.NEXT_PUBLIC_USE_MOCK_AUTH === 'true') {
+      return true;
+    }
+
+    // Check if user's role has the permission by default
+    const userRole = user.role || 'USER';
+    const rolePermissions = defaultRoles[userRole] || [];
+    return rolePermissions.includes(permission);
+  } catch (error) {
+    console.error('Error checking permission:', error);
+    return false;
+  }
+}
+```
+
+## Mock Authentication and Data System
+
+### Purpose and Design
+
+The Mock Authentication and Data System provides a way to develop and test the application without requiring real GitHub credentials or API access. This system allows developers to work in isolation, test various scenarios, and demonstrate features without affecting production data.
+
+```mermaid
+graph TD
+    Config[Environment Config] --> ModeManager[Mode Manager]
+    ModeManager --> LiveMode[Live Mode]
+    ModeManager --> MockMode[Mock Mode]
+    LiveMode --> GitHubOAuth[GitHub OAuth]
+    LiveMode --> GitHubAPI[GitHub API]
+    MockMode --> MockAuth[Mock Authentication]
+    MockMode --> MockAPI[Mock GitHub API]
+    MockMode --> MockDataStore[Mock Data Store]
+    MockDataStore --> DataGenerator[Data Generator]
+    MockDataStore --> DataImportExport[Import/Export]
+```
+
+### Key Components
+
+1. **Mode Manager**
+   - Environment-based configuration
+   - Runtime mode switching
+   - UI indicators for current mode
+
+2. **Mock Authentication**
+   - GitHub OAuth simulation
+   - Mock user profiles
+   - Session management
+
+3. **Mock GitHub API**
+   - Realistic API response simulation
+   - Configurable error conditions
+   - Rate limit simulation
+
+4. **Mock Data Management**
+   - Realistic data generation
+   - Data persistence
+   - Import/export capabilities
+
+### Implementation Example
+
+```typescript
+// Mode manager for determining current application mode
+export function getAppMode() {
+  // Check environment variables first
+  const envMockAuth = process.env.NEXT_PUBLIC_USE_MOCK_AUTH === 'true';
+  const envMockApi = process.env.NEXT_PUBLIC_USE_MOCK_API === 'true';
+  
+  // If environment variables are set, use them
+  if (envMockAuth || envMockApi) {
+    return {
+      mode: 'MOCK',
+      mockDataSetId: process.env.NEXT_PUBLIC_MOCK_DATA_SET || 'default',
+      enabledFeatures: ['ANALYTICS', 'TEAM_INSIGHTS', 'BURNOUT_DETECTION'],
+      errorSimulation: process.env.NEXT_PUBLIC_MOCK_ERROR_SIMULATION === 'true' ? {
+        enabled: true,
+        probability: parseFloat(process.env.NEXT_PUBLIC_MOCK_ERROR_PROBABILITY || '0.1')
+      } : null,
+    };
+  }
+  
+  // Otherwise, try to fetch from database
+  // ...
+}
+```
+
+## UI/UX Improvements
+
+### Purpose and Design
+
+The UI/UX improvements focus on creating a consistent, intuitive, and effective user experience across all features. This includes standardized navigation patterns, responsive layouts, and clear visual indicators for different application modes.
+
+```mermaid
+graph TD
+    DesignSystem[Design System] --> Components[UI Components]
+    DesignSystem --> Layouts[Responsive Layouts]
+    DesignSystem --> Themes[Theme System]
+    Components --> Navigation[Navigation System]
+    Components --> Forms[Form Components]
+    Components --> Visualizations[Data Visualizations]
+    Components --> Feedback[Feedback System]
+    Navigation --> RoleBasedNav[Role-Based Navigation]
+    Navigation --> ModeIndicators[Mode Indicators]
+```
+
+### Key Components
+
+1. **Role-Based UI**
+   - Permission-based component rendering
+   - Role-specific dashboards
+   - Access control visualization
+
+2. **Mode Indicators**
+   - Clear visual indicators for mock/demo mode
+   - Mode boundary warnings
+   - Mode switching controls
+
+3. **Responsive Design**
+   - Adaptive layouts for different devices
+   - Touch-optimized interactions
+   - Consistent component behavior
+
+4. **Feedback System**
+   - Consistent error handling
+   - Loading states and skeletons
+   - Success confirmations
+
+### Implementation Example
+
+```typescript
+// Role-based rendering component
+export const RoleBasedRender: React.FC<{
+  requiredRole: UserRole | UserRole[];
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}> = ({ requiredRole, children, fallback = null }) => {
+  const { user, loading } = useUser();
+  
+  if (loading) return <LoadingSkeleton />;
+  
+  if (!user) return fallback;
+  
+  const hasRequiredRole = Array.isArray(requiredRole)
+    ? requiredRole.includes(user.role)
+    : user.role === requiredRole;
+  
+  return hasRequiredRole ? <>{children}</> : <>{fallback}</>;
+};
+```
 
 ## Technical Considerations
 
