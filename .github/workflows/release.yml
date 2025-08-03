@@ -1,15 +1,20 @@
 name: Release Management
 
+# TEMPORARILY DISABLED - All triggers commented out until external services are ready
+# on:
+#   push:
+#     tags:
+#       - 'v*'
+#   workflow_dispatch:
+#     inputs:
+#       version:
+#         description: 'Version to release (e.g., v1.0.0)'
+#         required: true
+#         type: string
+
+# Manual trigger only for testing
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to release (e.g., v1.0.0)'
-        required: true
-        type: string
 
 jobs:
   create-release:

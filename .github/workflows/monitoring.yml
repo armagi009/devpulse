@@ -1,9 +1,14 @@
 name: Production Monitoring
 
+# TEMPORARILY DISABLED - All triggers commented out until external services are ready
+# on:
+#   schedule:
+#     # Run every 15 minutes
+#     - cron: '*/15 * * * *'
+#   workflow_dispatch:
+
+# Manual trigger only for testing
 on:
-  schedule:
-    # Run every 15 minutes
-    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 jobs:
