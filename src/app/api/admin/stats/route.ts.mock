@@ -1,0 +1,37 @@
+/**
+ * Mock Admin Stats API Route
+ * Returns mock admin statistics for the admin dashboard
+ */
+
+import { NextResponse } from 'next/server';
+
+export async function GET() {
+  return NextResponse.json({
+    userCount: 42,
+    repositoryCount: 18,
+    teamCount: 7,
+    systemHealth: {
+      status: 'healthy',
+      uptime: 1234567,
+      version: '1.0.0',
+      lastDeployment: '2025-07-20T15:30:00Z',
+    },
+    recentActivity: {
+      logins: 128,
+      apiCalls: 5432,
+      repositorySyncs: 24,
+      errors: 3,
+    },
+    storageUsage: {
+      total: 1024,
+      used: 512,
+      unit: 'MB',
+    },
+    apiUsage: {
+      total: 10000,
+      used: 4500,
+      limit: 10000,
+      resetAt: new Date(Date.now() + 86400000).toISOString(),
+    },
+  });
+}

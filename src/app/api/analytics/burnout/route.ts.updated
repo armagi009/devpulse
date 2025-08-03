@@ -1,0 +1,211 @@
+/**
+ * Burnout Risk API Route
+ * Handles burnout risk assessment and recommendations
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { z } from 'zod';
+import { calculateBurnoutRisk } from '@/lib/analytics/burnout-calculator';
+import { AppError, ErrorCode } from '@/lib/types/api';
+import { canAccessRepository, canAccessBurnoutData, applyDataPrivacyFilters, logDataAccess } from '@/lib/auth/data-access-service';
+import { hasPermission } from '@/lib/auth/role-service';
+import { PERMISSIONS } from '@/lib/types/roles';
+
+// Burnout risk query schema
+const burnoutRiskQuerySchema = z.object({
+  repositoryId: z.string().uuid().optional(),
+  userId: z.string().uuid().optional(),
+  days: z.string().transform(val => parseInt(val, 10)).optional(),
+});
+
+/**
+ * GET /api/analytics/burnout
+ * Get burnout risk assessment for a user
+ */
+export async function GET(request: NextRequest) {
+  try {
+    // Get session
+    const session = await getServerSession(authOptions);
+    
+    // Check if user is authenticated
+    if (!session || !session.user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: ErrorCode.UNAUTHORIZED,
+            message: 'Not authenticated',
+          },
+          timestamp: new Date().toISOString(),
+        },
+        { status: 401 }
+      );
+    }
+    
+    // Get query parameters
+    const searchParams = request.nextUrl.searchParams;
+    const repositoryId = searchParams.get('repositoryId');
+    const userId = searchParams.get('userId') || session.user.id;
+    const days = searchParams.get('days') || '30';
+    
+    // Validate query parameters
+    const result = burnoutRiskQuerySchema.safeParse({
+      repositoryId,
+      userId,
+      days,
+    });
+    
+    if (!result.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: ErrorCode.BAD_REQUEST,
+            message: 'Invalid burnout risk query parameters',
+            details: result.error.format(),
+          },
+          timestamp: new Date().toISOString(),
+        },
+        { status: 400 }
+      );
+    }
+    
+    // Get validated data
+    const { 
+      repositoryId: validatedRepoId, 
+      userId: validatedUserId,
+      days: validatedDays = 30 
+    } = result.data;
+    
+    // Check if repository ID is provided
+    if (!validatedRepoId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: ErrorCode.BAD_REQUEST,
+            message: 'Repository ID is required',
+          },
+          timestamp: new Date().toISOString(),
+        },
+        { status: 400 }
+      );
+    }
+    
+    // Check if user has access to the repository
+    const hasRepoAccess = await canAccessRepository(session.user.id, validatedRepoId);
+    
+    if (!hasRepoAccess) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: ErrorCode.FORBIDDEN,
+            message: 'You do not have access to this repository',
+          },
+          timestamp: new Date().toISOString(),
+        },
+        { status: 403 }
+      );
+    }
+    
+    // Check if user has permission to view burnout data
+    const canViewPersonalBurnout = await hasPermission(session.user.id, PERMISSIONS.VIEW_BURNOUT_PERSONAL);
+    
+    if (!canViewPersonalBurnout && validatedUserId === session.user.id) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: ErrorCode.FORBIDDEN,
+            message: 'You do not have permission to view burnout data',
+          },
+          timestamp: new Date().toISOString(),
+        },
+        { status: 403 }
+      );
+    }
+    
+    // If requesting another user's burnout data, check if user has access
+    if (validatedUserId !== session.user.id) {
+      const canViewOtherUserBurnout = await canAccessBurnoutData(
+        session.user.id,
+        validatedUserId,
+        validatedRepoId
+      );
+      
+      if (!canViewOtherUserBurnout) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: ErrorCode.FORBIDDEN,
+              message: 'You do not have permission to view this user\'s burnout data',
+            },
+            timestamp: new Date().toISOString(),
+          },
+          { status: 403 }
+        );
+      }
+    }
+    
+    // Calculate burnout risk
+    const burnoutRisk = await calculateBurnoutRisk(
+      validatedUserId,
+      validatedRepoId,
+      validatedDays
+    );
+    
+    // Apply data privacy filters
+    const filteredData = await applyDataPrivacyFilters(
+      validatedUserId,
+      burnoutRisk,
+      'burnout'
+    );
+    
+    // Log data access
+    await logDataAccess(
+      session.user.id,
+      'burnout',
+      `${validatedRepoId}:${validatedUserId}`,
+      'VIEW'
+    );
+    
+    // Return burnout risk assessment
+    return NextResponse.json(
+      {
+        success: true,
+        data: filteredData,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Error in burnout risk API route:', error);
+    
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.toJSON(),
+          timestamp: new Date().toISOString(),
+        },
+        { status: error.status }
+      );
+    }
+    
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: ErrorCode.INTERNAL_SERVER_ERROR,
+          message: 'An unexpected error occurred',
+        },
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
+  }
+}

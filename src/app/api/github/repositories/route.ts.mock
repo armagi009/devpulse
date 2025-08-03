@@ -1,0 +1,81 @@
+/**
+ * Mock GitHub Repositories API Route
+ * Returns mock repository data
+ */
+
+import { NextResponse } from 'next/server';
+
+export async function GET() {
+  return NextResponse.json([
+    {
+      id: '1',
+      name: 'frontend-app',
+      fullName: 'devpulse/frontend-app',
+      description: 'Main frontend application',
+      url: 'https://github.com/devpulse/frontend-app',
+      language: 'TypeScript',
+      stars: 42,
+      forks: 12,
+      openIssues: 8,
+      lastUpdated: '2025-07-20T15:30:00Z',
+      isPrivate: false,
+      isSelected: true,
+    },
+    {
+      id: '2',
+      name: 'api-service',
+      fullName: 'devpulse/api-service',
+      description: 'Backend API service',
+      url: 'https://github.com/devpulse/api-service',
+      language: 'JavaScript',
+      stars: 38,
+      forks: 10,
+      openIssues: 5,
+      lastUpdated: '2025-07-19T12:45:00Z',
+      isPrivate: false,
+      isSelected: true,
+    },
+    {
+      id: '3',
+      name: 'data-processor',
+      fullName: 'devpulse/data-processor',
+      description: 'Data processing service',
+      url: 'https://github.com/devpulse/data-processor',
+      language: 'Python',
+      stars: 25,
+      forks: 8,
+      openIssues: 3,
+      lastUpdated: '2025-07-18T09:15:00Z',
+      isPrivate: true,
+      isSelected: true,
+    },
+    {
+      id: '4',
+      name: 'ui-components',
+      fullName: 'devpulse/ui-components',
+      description: 'Reusable UI components',
+      url: 'https://github.com/devpulse/ui-components',
+      language: 'TypeScript',
+      stars: 56,
+      forks: 18,
+      openIssues: 12,
+      lastUpdated: '2025-07-17T16:20:00Z',
+      isPrivate: false,
+      isSelected: false,
+    },
+    {
+      id: '5',
+      name: 'documentation',
+      fullName: 'devpulse/documentation',
+      description: 'Project documentation',
+      url: 'https://github.com/devpulse/documentation',
+      language: 'Markdown',
+      stars: 15,
+      forks: 5,
+      openIssues: 2,
+      lastUpdated: '2025-07-16T11:10:00Z',
+      isPrivate: false,
+      isSelected: false,
+    },
+  ]);
+}

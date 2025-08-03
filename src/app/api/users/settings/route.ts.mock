@@ -1,0 +1,39 @@
+/**
+ * Mock User Settings API Route
+ * Returns mock user settings
+ */
+
+import { NextResponse } from 'next/server';
+
+export async function GET() {
+  return NextResponse.json({
+    id: '1',
+    userId: '1',
+    theme: 'system',
+    language: 'en',
+    notifications: {
+      email: true,
+      push: true,
+      inApp: true,
+    },
+    display: {
+      density: 'comfortable',
+      colorMode: 'auto',
+      fontSize: 'medium',
+    },
+    dashboard: {
+      defaultView: 'overview',
+      widgets: ['productivity', 'burnout', 'team', 'repositories'],
+    },
+    selectedRepositories: ['1', '2', '3'],
+    dataPrivacy: {
+      shareAnonymousData: true,
+      allowAnalytics: true,
+    },
+    syncSettings: {
+      autoSync: true,
+      syncInterval: 60,
+    },
+    lastUpdated: '2025-07-20T15:30:00Z',
+  });
+}

@@ -1,0 +1,194 @@
+/**
+ * NextAuth.js API Route
+ * Handles authentication with GitHub OAuth
+ */
+
+import NextAuth from 'next-auth';
+import GithubProvider from 'next-auth/providers/github';
+import { PrismaAdapter } from '@auth/prisma-adapter';
+import { prisma } from '@/lib/db/prisma';
+import { env } from '@/lib/utils/env';
+import { MockProvider, shouldUseMockAuth } from '@/lib/auth/mock-auth-provider';
+import { UserRole } from '@/lib/types/roles';
+
+/**
+ * NextAuth.js configuration
+ */
+export const authOptions = {
+  adapter: PrismaAdapter(prisma),
+  providers: [
+    // Conditionally include the mock provider in development mode
+    ...(shouldUseMockAuth() ? [MockProvider()] : []),
+    // Always include the GitHub provider (will be used if mock auth is disabled)
+    GithubProvider({
+      clientId: env().GITHUB_ID,
+      clientSecret: env().GITHUB_SECRET,
+      authorization: {
+        params: {
+          // Request additional scopes for GitHub API access
+          scope: 'read:user user:email repo',
+        },
+      },
+    }),
+  ],
+  callbacks: {
+    /**
+     * JWT callback - Add custom claims to the JWT token
+     */
+    async jwt({ token, user, account, trigger }) {
+      // Add user ID to token
+      if (user) {
+        token.userId = user.id;
+        
+        // Fetch user role from database
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { role: true },
+        });
+        
+        if (dbUser) {
+          token.role = dbUser.role;
+        }
+        
+        // Check if this is a new user (first sign in)
+        if (trigger === 'signIn') {
+          // Check if user has completed onboarding
+          const userSettings = await prisma.userSettings.findUnique({
+            where: { userId: user.id },
+          });
+          
+          // If no user settings exist, this is likely a new user
+          token.isNewUser = !userSettings;
+        }
+      }
+
+      // Add GitHub access token to token
+      if (account && account.provider === 'github') {
+        token.accessToken = account.access_token;
+        token.refreshToken = account.refresh_token;
+      }
+
+      return token;
+    },
+
+    /**
+     * Session callback - Add custom session properties
+     */
+    async session({ session, token }) {
+      // Add user ID to session
+      if (token.userId) {
+        session.user.id = token.userId as string;
+      }
+
+      // Add user role to session
+      if (token.role) {
+        session.user.role = token.role as UserRole;
+      }
+
+      // Add GitHub access token to session
+      if (token.accessToken) {
+        session.accessToken = token.accessToken as string;
+      }
+
+      return session;
+    },
+
+    /**
+     * Sign-in callback - Create or update user in database
+     */
+    async signIn({ user, account, profile }) {
+      if (!account || !profile) {
+        return false;
+      }
+
+      try {
+        // Handle both GitHub and mock authentication
+        if (account.provider === 'github' || account.provider === 'mock-github') {
+          // Get profile data
+          const userProfile = profile as {
+            id: number;
+            login: string;
+            name?: string;
+            email?: string;
+            avatar_url?: string;
+          };
+
+          // Check if user exists
+          const existingUser = await prisma.user.findUnique({
+            where: { githubId: userProfile.id },
+          });
+
+          if (existingUser) {
+            // Update existing user
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: {
+                username: userProfile.login,
+                name: userProfile.name || null,
+                email: userProfile.email || null,
+                avatarUrl: userProfile.avatar_url || null,
+                accessToken: account.access_token || '',
+                refreshToken: account.refresh_token || null,
+                updatedAt: new Date(),
+              },
+            });
+          } else {
+            // Get default role from system settings
+            const defaultRoleSetting = await prisma.systemSettings.findUnique({
+              where: { key: 'default_role' },
+            });
+            
+            const defaultRole = defaultRoleSetting?.value || 'DEVELOPER';
+            
+            // Create new user
+            await prisma.user.create({
+              data: {
+                githubId: userProfile.id,
+                username: userProfile.login,
+                name: userProfile.name || null,
+                email: userProfile.email || null,
+                avatarUrl: userProfile.avatar_url || null,
+                accessToken: account.access_token || '',
+                refreshToken: account.refresh_token || null,
+                role: defaultRole as UserRole,
+              },
+            });
+            
+            // Log user creation
+            await prisma.auditLog.create({
+              data: {
+                action: 'USER_CREATE',
+                entityType: 'USER',
+                entityId: user.id,
+                description: `New user created with role ${defaultRole}`,
+                userId: user.id,
+              },
+            });
+          }
+
+          return true;
+        }
+
+        return false;
+      } catch (error) {
+        console.error('Error during sign-in:', error);
+        return false;
+      }
+    },
+  },
+  pages: {
+    signIn: '/auth/signin',
+    signOut: '/auth/signout',
+    error: '/auth/error',
+  },
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  secret: env().NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === 'development',
+};
+
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST };

@@ -1,0 +1,191 @@
+name: Code Quality Analysis
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+
+jobs:
+  codeql-analysis:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript' ]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: devpulse/package-lock.json
+          
+      - name: Install dependencies
+        run: |
+          cd devpulse
+          npm ci
+          
+      - name: Build application
+        run: |
+          cd devpulse
+          npx prisma generate
+          npm run build
+          
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  sonarcloud-analysis:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: devpulse/package-lock.json
+          
+      - name: Install dependencies
+        run: |
+          cd devpulse
+          npm ci
+          
+      - name: Run tests with coverage
+        run: |
+          cd devpulse
+          npm test -- --coverage --watchAll=false
+          
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: devpulse
+
+  bundle-analysis:
+    name: Bundle Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: devpulse/package-lock.json
+          
+      - name: Install dependencies
+        run: |
+          cd devpulse
+          npm ci
+          
+      - name: Build application
+        run: |
+          cd devpulse
+          npx prisma generate
+          npm run build
+          
+      - name: Analyze bundle size
+        uses: nextjs-bundle-analysis/bundle-analysis-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          workflow-id: 'ci.yml'
+          working-directory: devpulse
+
+  accessibility-audit:
+    name: Accessibility Audit
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: devpulse_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+          
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: devpulse/package-lock.json
+          
+      - name: Install dependencies
+        run: |
+          cd devpulse
+          npm ci
+          
+      - name: Setup database
+        run: |
+          cd devpulse
+          npx prisma generate
+          npx prisma db push
+          npm run prepare:dry-run
+          
+      - name: Install Playwright
+        run: |
+          cd devpulse
+          npx playwright install --with-deps chromium
+          
+      - name: Run accessibility tests
+        run: |
+          cd devpulse
+          npx playwright test --config=e2e-tests/playwright.config.ts --grep="accessibility"
+          
+      - name: Upload accessibility results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-results
+          path: devpulse/e2e-tests/test-data/
+          retention-days: 7

@@ -1,0 +1,204 @@
+/**
+ * Team Analytics API
+ * Provides team collaboration metrics and insights
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { z } from 'zod';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { 
+  calculateTeamVelocity, 
+  calculateTeamCollaboration, 
+  calculateKnowledgeDistribution 
+} from '@/lib/analytics/team-collaboration';
+import { prisma } from '@/lib/db/prisma';
+import { getDevModeConfig } from '@/lib/config/dev-mode';
+import { canAccessRepository, applyDataPrivacyFilters, logDataAccess } from '@/lib/auth/data-access-service';
+import { hasPermission } from '@/lib/auth/role-service';
+import { PERMISSIONS } from '@/lib/types/roles';
+
+// Request schema validation
+const requestSchema = z.object({
+  repositoryId: z.string().uuid(),
+  timeRange: z.object({
+    start: z.string().datetime().optional(),
+    end: z.string().datetime().optional(),
+  }).optional(),
+  metrics: z.array(z.enum(['velocity', 'collaboration', 'knowledge'])).optional(),
+});
+
+/**
+ * GET handler for team analytics
+ */
+export async function GET(request: NextRequest) {
+  try {
+    // Authenticate request
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    // Check if we're using mock mode
+    const config = getDevModeConfig();
+    if (config.useMockApi) {
+      // Log mock API usage
+      if (config.logMockCalls) {
+        console.info('🔧 [MockAPI] GET /api/analytics/team');
+      }
+    }
+    
+    // Parse and validate query parameters
+    const url = new URL(request.url);
+    const repositoryId = url.searchParams.get('repositoryId');
+    const startDate = url.searchParams.get('startDate');
+    const endDate = url.searchParams.get('endDate');
+    const metrics = url.searchParams.get('metrics')?.split(',') || ['velocity', 'collaboration', 'knowledge'];
+    
+    // Validate parameters
+    const validationResult = requestSchema.safeParse({
+      repositoryId,
+      timeRange: {
+        start: startDate,
+        end: endDate,
+      },
+      metrics,
+    });
+    
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: 'Invalid request parameters', details: validationResult.error },
+        { status: 400 }
+      );
+    }
+    
+    // Check if user has permission to view team metrics
+    const canViewTeamMetrics = await hasPermission(session.user.id, PERMISSIONS.VIEW_TEAM_METRICS);
+    
+    if (!canViewTeamMetrics) {
+      return NextResponse.json(
+        { error: 'You do not have permission to view team metrics' },
+        { status: 403 }
+      );
+    }
+    
+    // Check if user has access to repository
+    const hasRepoAccess = await canAccessRepository(session.user.id, repositoryId!);
+    
+    if (!hasRepoAccess) {
+      return NextResponse.json(
+        { error: 'You do not have access to this repository' },
+        { status: 403 }
+      );
+    }
+    
+    // Prepare time range
+    const now = new Date();
+    const timeRange = {
+      start: startDate ? new Date(startDate) : new Date(now.setDate(now.getDate() - 30)),
+      end: endDate ? new Date(endDate) : new Date(),
+    };
+    
+    // Collect requested metrics
+    const result: any = {
+      repositoryId,
+      timeRange,
+    };
+    
+    // Get velocity metrics if requested
+    if (metrics.includes('velocity')) {
+      result.velocity = await calculateTeamVelocity(repositoryId!, timeRange);
+    }
+    
+    // Get collaboration metrics if requested
+    if (metrics.includes('collaboration')) {
+      result.collaboration = await calculateTeamCollaboration(repositoryId!, timeRange);
+    }
+    
+    // Get knowledge distribution metrics if requested
+    if (metrics.includes('knowledge')) {
+      result.knowledge = await calculateKnowledgeDistribution(repositoryId!, timeRange);
+    }
+    
+    // Check if we have sufficient data
+    const hasSufficientData = await checkSufficientData(repositoryId!, timeRange);
+    result.hasSufficientData = hasSufficientData;
+    
+    // Apply data privacy filters
+    const filteredData = await applyDataPrivacyFilters(
+      session.user.id,
+      result,
+      'team'
+    );
+    
+    // Log data access
+    await logDataAccess(
+      session.user.id,
+      'team_analytics',
+      repositoryId!,
+      'VIEW'
+    );
+    
+    // Return response
+    return NextResponse.json(filteredData);
+  } catch (error) {
+    console.error('Error in team analytics API:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * Check if we have sufficient data for meaningful analytics
+ */
+async function checkSufficientData(
+  repositoryId: string,
+  timeRange: { start: Date; end: Date }
+): Promise<boolean> {
+  try {
+    // Count commits in time range
+    const commitCount = await prisma.commit.count({
+      where: {
+        repositoryId,
+        authorDate: {
+          gte: timeRange.start,
+          lte: timeRange.end,
+        },
+      },
+    });
+    
+    // Count pull requests in time range
+    const prCount = await prisma.pullRequest.count({
+      where: {
+        repositoryId,
+        createdAt: {
+          gte: timeRange.start,
+          lte: timeRange.end,
+        },
+      },
+    });
+    
+    // Count unique contributors
+    const contributors = await prisma.commit.groupBy({
+      by: ['authorId'],
+      where: {
+        repositoryId,
+        authorDate: {
+          gte: timeRange.start,
+          lte: timeRange.end,
+        },
+        authorId: {
+          not: null,
+        },
+      },
+    });
+    
+    // We need at least 10 commits, 2 PRs, and 2 contributors for meaningful analytics
+    return commitCount >= 10 && prCount >= 2 && contributors.length >= 2;
+  } catch (error) {
+    console.error('Error checking data sufficiency:', error);
+    return false;
+  }
+}

@@ -1,0 +1,18 @@
+/**
+ * Mock Permissions API Route
+ * Returns mock permissions for the current user
+ */
+
+import { NextResponse } from 'next/server';
+import { UserRole, PERMISSIONS, DEFAULT_ROLE_PERMISSIONS } from '@/lib/types/roles';
+
+export async function GET() {
+  // In mock mode, return all permissions for the ADMINISTRATOR role
+  const role = UserRole.ADMINISTRATOR;
+  const permissions = DEFAULT_ROLE_PERMISSIONS[role];
+  
+  return NextResponse.json({
+    role,
+    permissions,
+  });
+}

@@ -1,0 +1,69 @@
+/**
+ * Settings page styles
+ */
+
+/* Font scaling */
+:root {
+  --font-scale: 1;
+}
+
+.font-scaled {
+  font-size: calc(1rem * var(--font-scale));
+}
+
+/* High contrast mode */
+.high-contrast {
+  --contrast-factor: 1.2;
+}
+
+.high-contrast .text-muted-foreground {
+  color: hsl(var(--foreground) / 0.9);
+}
+
+.high-contrast .border {
+  border-width: 2px;
+}
+
+.high-contrast button,
+.high-contrast a {
+  outline: 2px solid transparent;
+}
+
+.high-contrast button:focus,
+.high-contrast a:focus {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Density settings */
+.density-compact {
+  --spacing-factor: 0.8;
+}
+
+.density-comfortable {
+  --spacing-factor: 1;
+}
+
+.density-spacious {
+  --spacing-factor: 1.2;
+}
+
+/* Apply density to spacing */
+.density-adjusted {
+  padding: calc(var(--spacing) * var(--spacing-factor));
+  margin: calc(var(--spacing) * var(--spacing-factor));
+  gap: calc(var(--spacing) * var(--spacing-factor));
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animations-disabled * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.animations-disabled * {
+  animation-duration: 0.001ms !important;
+  transition-duration: 0.001ms !important;
+}

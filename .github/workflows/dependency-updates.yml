@@ -1,0 +1,105 @@
+name: Dependency Updates
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  update-dependencies:
+    name: Update Dependencies
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: devpulse/package-lock.json
+          
+      - name: Install dependencies
+        run: |
+          cd devpulse
+          npm ci
+          
+      - name: Update dependencies
+        run: |
+          cd devpulse
+          npx npm-check-updates -u
+          npm install
+          
+      - name: Run tests after update
+        run: |
+          cd devpulse
+          npm test -- --watchAll=false
+          npm run lint
+          
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update dependencies'
+          title: 'chore: automated dependency updates'
+          body: |
+            ## Automated Dependency Updates
+            
+            This PR contains automated dependency updates.
+            
+            ### Changes
+            - Updated npm dependencies to latest versions
+            - All tests pass with updated dependencies
+            - Code quality checks pass
+            
+            ### Testing
+            - [x] Unit tests pass
+            - [x] Linting passes
+            - [ ] Manual testing required
+            
+            Please review the changes and test manually before merging.
+          branch: chore/dependency-updates
+          delete-branch: true
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: devpulse/package-lock.json
+          
+      - name: Install dependencies
+        run: |
+          cd devpulse
+          npm ci
+          
+      - name: Run security audit
+        run: |
+          cd devpulse
+          npm audit --audit-level=high
+          
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+          
+      - name: Upload Snyk results to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: snyk.sarif

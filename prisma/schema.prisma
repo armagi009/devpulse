@@ -1,0 +1,348 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and profile information
+model User {
+  id            String    @id @default(uuid())
+  githubId      Int       @unique
+  username      String
+  name          String?
+  email         String?
+  avatarUrl     String?
+  accessToken   String
+  refreshToken  String?
+  role          String    @default("DEVELOPER") // Role field with correct default
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  repositories  Repository[]
+  commits       Commit[]
+  pullRequests  PullRequest[]
+  issues        Issue[]
+  burnoutMetrics BurnoutMetric[]
+  userSettings  UserSettings?
+  permissions   Permission[] // Added permissions relation
+  userTokens    UserToken[] // Secure token storage
+  sensitiveData SensitiveData[] // Encrypted sensitive data
+  auditLogs     AuditLog[] // Audit logging
+
+  @@index([githubId])
+}
+
+// User settings and preferences
+model UserSettings {
+  id                  String    @id @default(uuid())
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId              String    @unique
+  theme               String    @default("system") // light, dark, system
+  emailNotifications  Boolean   @default(true)
+  weeklyReports       Boolean   @default(true)
+  burnoutAlerts       Boolean   @default(true)
+  selectedRepositories String[] @default([])
+  dashboardLayout     Json?     // Stores layout preferences like density, fontSize, etc.
+  dataPrivacy         String    @default("STANDARD") // MINIMAL, STANDARD, DETAILED
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+// GitHub repository
+model Repository {
+  id            String    @id @default(uuid())
+  githubId      Int       @unique
+  name          String
+  fullName      String
+  owner         User      @relation(fields: [ownerId], references: [id])
+  ownerId       String
+  isPrivate     Boolean   @default(false)
+  description   String?
+  defaultBranch String    @default("main")
+  language      String?
+  lastSyncedAt  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  commits       Commit[]
+  pullRequests  PullRequest[]
+  issues        Issue[]
+  burnoutMetrics BurnoutMetric[]
+  teamInsights  TeamInsight[]
+  
+  @@index([ownerId])
+}
+
+// Commit data
+model Commit {
+  id            String    @id @default(uuid())
+  sha           String
+  message       String
+  authorName    String
+  authorEmail   String
+  authorDate    DateTime
+  committerName String
+  committerEmail String
+  committerDate DateTime
+  additions     Int
+  deletions     Int
+  repository    Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  repositoryId  String
+  author        User?     @relation(fields: [authorId], references: [id])
+  authorId      String?
+  createdAt     DateTime  @default(now())
+
+  @@unique([repositoryId, sha])
+  @@index([repositoryId])
+  @@index([authorId])
+  @@index([authorDate])
+}
+
+// Pull request data
+model PullRequest {
+  id            String    @id @default(uuid())
+  githubId      Int
+  number        Int
+  title         String
+  state         String    // open, closed, merged
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  closedAt      DateTime?
+  mergedAt      DateTime?
+  repository    Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  repositoryId  String
+  author        User      @relation(fields: [authorId], references: [id])
+  authorId      String
+  additions     Int       @default(0)
+  deletions     Int       @default(0)
+  changedFiles  Int       @default(0)
+  comments      Int       @default(0)
+  reviewComments Int      @default(0)
+
+  // Relations
+  reviews       PullRequestReview[]
+
+  @@unique([repositoryId, number])
+  @@index([repositoryId])
+  @@index([authorId])
+  @@index([state])
+}
+
+// Pull request review data
+model PullRequestReview {
+  id            String    @id @default(uuid())
+  githubId      Int
+  state         String    // APPROVED, CHANGES_REQUESTED, COMMENTED, DISMISSED
+  submittedAt   DateTime
+  pullRequest   PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  pullRequestId String
+  reviewer      String    // GitHub username
+  reviewerId    String?   // User ID if available
+  createdAt     DateTime  @default(now())
+
+  @@index([pullRequestId])
+  @@index([reviewerId])
+}
+
+// Issue data
+model Issue {
+  id            String    @id @default(uuid())
+  githubId      Int
+  number        Int
+  title         String
+  state         String    // open, closed
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  closedAt      DateTime?
+  repository    Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  repositoryId  String
+  author        User      @relation(fields: [authorId], references: [id])
+  authorId      String
+  comments      Int       @default(0)
+  labels        String[]
+
+  @@unique([repositoryId, number])
+  @@index([repositoryId])
+  @@index([authorId])
+  @@index([state])
+}
+
+// Burnout metrics for risk assessment
+model BurnoutMetric {
+  id                      String    @id @default(uuid())
+  user                    User      @relation(fields: [userId], references: [id])
+  userId                  String
+  repository              Repository @relation(fields: [repositoryId], references: [id])
+  repositoryId            String
+  date                    DateTime  @db.Date
+  commitsCount            Int       @default(0)
+  linesAdded              Int       @default(0)
+  linesDeleted            Int       @default(0)
+  prsOpened               Int       @default(0)
+  prsReviewed             Int       @default(0)
+  issuesCreated           Int       @default(0)
+  issuesResolved          Int       @default(0)
+  avgCommitTimeHour       Decimal?  @db.Decimal(5, 2)
+  weekendCommits          Int       @default(0)
+  lateNightCommits        Int       @default(0)
+  avgPrReviewTimeHours    Decimal?  @db.Decimal(10, 2)
+  avgCommitMessageLength  Int?
+  codeReviewComments      Int       @default(0)
+  burnoutRiskScore        Decimal?  @db.Decimal(5, 2)
+  createdAt               DateTime  @default(now())
+  
+  @@unique([userId, repositoryId, date])
+  @@index([userId, date])
+  @@index([repositoryId, date])
+}
+
+// Team-level insights and metrics
+model TeamInsight {
+  id                      String    @id @default(uuid())
+  repository              Repository @relation(fields: [repositoryId], references: [id])
+  repositoryId            String
+  date                    DateTime  @db.Date
+  memberCount             Int       @default(0)
+  totalCommits            Int       @default(0)
+  totalPrs                Int       @default(0)
+  totalIssues             Int       @default(0)
+  velocityScore           Decimal   @db.Decimal(5, 2)
+  prMergeRate             Decimal   @db.Decimal(5, 2)
+  issueResolutionRate     Decimal   @db.Decimal(5, 2)
+  cycleTimeAverage        Decimal   @db.Decimal(10, 2)
+  collaborationScore      Decimal   @db.Decimal(5, 2)
+  knowledgeSharingScore   Decimal   @db.Decimal(5, 2)
+  createdAt               DateTime  @default(now())
+  
+  @@unique([repositoryId, date])
+  @@index([repositoryId, date])
+}
+
+// Retrospective data
+model Retrospective {
+  id                String    @id @default(uuid())
+  repositoryId      String
+  startDate         DateTime  @db.Date
+  endDate           DateTime  @db.Date
+  positives         String[]
+  improvements      String[]
+  actionItems       String[]
+  teamHealthScore   Decimal   @db.Decimal(5, 2)
+  observations      String[]
+  recommendations   String[]
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  @@index([repositoryId])
+  @@index([startDate, endDate])
+}
+
+// Mock data sets for development and testing
+model MockDataSet {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  data      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Application mode configuration
+model AppMode {
+  id                String    @id @default(uuid())
+  mode              AppModeType @default(LIVE)
+  mockDataSetId     String?
+  enabledFeatures   String[]
+  errorSimulation   Json?     // Configuration for error simulation
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+// Application mode types
+enum AppModeType {
+  LIVE
+  MOCK
+  DEMO
+}
+// Permission model for role-based access control
+model Permission {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  users       User[]
+}
+
+// Secure token storage
+model UserToken {
+  id          String    @id @default(uuid())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  tokenType   String    // github, openai, etc.
+  token       String    // Encrypted token
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, tokenType])
+  @@index([userId])
+}
+
+// Encrypted sensitive data storage
+model SensitiveData {
+  id          String    @id @default(uuid())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  dataType    String    // Type of sensitive data (e.g., "personal", "payment", etc.)
+  dataKey     String    // Key for the data (e.g., "phone", "address", etc.)
+  dataValue   String    // Encrypted value
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, dataType, dataKey])
+  @@index([userId])
+}
+
+// System settings with encryption support
+model SystemSettings {
+  id              String    @id @default(uuid())
+  key             String    @unique
+  value           String
+  description     String?
+  isEncrypted     Boolean   @default(false)
+  lastModifiedBy  String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Audit logging for security and compliance
+model AuditLog {
+  id          String    @id @default(uuid())
+  action      String    // The action performed (e.g., "LOGIN", "UPDATE_USER", etc.)
+  entityType  String    // The type of entity affected (e.g., "User", "Repository", etc.)
+  entityId    String    // The ID of the entity affected
+  description String    // Human-readable description of the action
+  metadata    Json?     // Additional context about the action
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String    // The user who performed the action
+  ipAddress   String?   // IP address of the user
+  userAgent   String?   // User agent of the client
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}

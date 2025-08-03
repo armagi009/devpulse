@@ -1,0 +1,90 @@
+/**
+ * Mock Teams API
+ * Provides mock teams data
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+
+/**
+ * GET /api/teams
+ * Get mock teams data
+ */
+export async function GET(request: NextRequest) {
+  // Get query parameters
+  const url = new URL(request.url);
+  const role = url.searchParams.get('role');
+  
+  // Generate mock teams data based on role filter
+  const teams = generateMockTeams(role);
+  
+  return NextResponse.json({
+    success: true,
+    data: teams,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+/**
+ * Generate mock teams data
+ */
+function generateMockTeams(roleFilter?: string | null) {
+  const allTeams = [
+    {
+      id: '1',
+      name: 'Frontend Team',
+      description: 'Responsible for UI/UX development',
+      leadId: '101',
+      leadName: 'Jane Smith',
+      memberCount: 8,
+      repositories: 12,
+      role: 'lead'
+    },
+    {
+      id: '2',
+      name: 'Backend Team',
+      description: 'API and database development',
+      leadId: '102',
+      leadName: 'John Doe',
+      memberCount: 6,
+      repositories: 10,
+      role: 'member'
+    },
+    {
+      id: '3',
+      name: 'DevOps Team',
+      description: 'Infrastructure and deployment',
+      leadId: '103',
+      leadName: 'Alice Johnson',
+      memberCount: 4,
+      repositories: 8,
+      role: 'lead'
+    },
+    {
+      id: '4',
+      name: 'QA Team',
+      description: 'Quality assurance and testing',
+      leadId: '104',
+      leadName: 'Bob Williams',
+      memberCount: 5,
+      repositories: 6,
+      role: 'member'
+    },
+    {
+      id: '5',
+      name: 'Mobile Team',
+      description: 'iOS and Android development',
+      leadId: '105',
+      leadName: 'Charlie Brown',
+      memberCount: 7,
+      repositories: 9,
+      role: 'lead'
+    }
+  ];
+  
+  // Filter teams by role if specified
+  if (roleFilter) {
+    return allTeams.filter(team => team.role === roleFilter);
+  }
+  
+  return allTeams;
+}

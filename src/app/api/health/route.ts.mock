@@ -1,0 +1,46 @@
+/**
+ * Mock Health API Route
+ * Returns mock health status for the application
+ */
+
+import { NextResponse } from 'next/server';
+
+export async function GET() {
+  return NextResponse.json({
+    status: 'healthy',
+    uptime: 1234567,
+    version: '1.0.0',
+    services: {
+      database: {
+        status: 'healthy',
+        latency: 15,
+      },
+      github: {
+        status: 'healthy',
+        latency: 120,
+        rateLimit: {
+          remaining: 4500,
+          limit: 5000,
+          resetAt: new Date(Date.now() + 3600000).toISOString(),
+        },
+      },
+      cache: {
+        status: 'healthy',
+        hitRate: 0.85,
+      },
+      queue: {
+        status: 'healthy',
+        pendingJobs: 3,
+      },
+    },
+    memory: {
+      used: 512,
+      total: 2048,
+      unit: 'MB',
+    },
+    cpu: {
+      usage: 25,
+      unit: 'percent',
+    },
+  });
+}

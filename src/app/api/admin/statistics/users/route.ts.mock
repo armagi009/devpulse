@@ -1,0 +1,50 @@
+/**
+ * Mock Admin User Statistics API Route
+ * Returns mock user statistics for the admin dashboard
+ */
+
+import { NextResponse } from 'next/server';
+
+export async function GET() {
+  return NextResponse.json({
+    totalUsers: 42,
+    activeUsers: 38,
+    newUsersThisMonth: 5,
+    usersByRole: {
+      ADMINISTRATOR: 3,
+      TEAM_LEAD: 8,
+      DEVELOPER: 31,
+    },
+    userActivity: {
+      daily: [
+        { date: '2025-07-17', count: 32 },
+        { date: '2025-07-18', count: 35 },
+        { date: '2025-07-19', count: 28 },
+        { date: '2025-07-20', count: 22 },
+        { date: '2025-07-21', count: 36 },
+        { date: '2025-07-22', count: 38 },
+        { date: '2025-07-23', count: 37 },
+      ],
+      weekly: [
+        { week: '2025-W27', count: 35 },
+        { week: '2025-W28', count: 36 },
+        { week: '2025-W29', count: 38 },
+        { week: '2025-W30', count: 37 },
+      ],
+      monthly: [
+        { month: '2025-03', count: 30 },
+        { month: '2025-04', count: 32 },
+        { month: '2025-05', count: 35 },
+        { month: '2025-06', count: 38 },
+        { month: '2025-07', count: 42 },
+      ],
+    },
+    topActiveUsers: [
+      { id: '1', name: 'Alice Johnson', email: 'alice@example.com', activityScore: 95 },
+      { id: '2', name: 'Bob Smith', email: 'bob@example.com', activityScore: 88 },
+      { id: '3', name: 'Charlie Brown', email: 'charlie@example.com', activityScore: 82 },
+      { id: '4', name: 'Diana Prince', email: 'diana@example.com', activityScore: 79 },
+      { id: '5', name: 'Edward Norton', email: 'edward@example.com', activityScore: 75 },
+    ],
+  });
+}

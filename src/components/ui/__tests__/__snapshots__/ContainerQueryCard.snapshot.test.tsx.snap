@@ -1,0 +1,296 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ContainerQueryCard Snapshots renders compact variant correctly 1`] = `
+<div>
+  <div
+    class="jsx-3957274593 container-query-card  compact"
+    style="width: 100%; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); background-color: white;"
+  >
+    <div
+      class="jsx-3957274593 card-content"
+    >
+      <div
+        class="jsx-3957274593 card-main"
+      >
+        <div
+          class="jsx-3957274593 card-header"
+        >
+          <h3
+            class="jsx-3957274593 card-title"
+          >
+            Compact Card
+          </h3>
+        </div>
+        <div
+          class="jsx-3957274593 card-body"
+        >
+          <p>
+            This is the compact card content
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ContainerQueryCard Snapshots renders default variant correctly 1`] = `
+<div>
+  <div
+    class="jsx-3957274593 container-query-card  default"
+    style="width: 100%; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); background-color: white;"
+  >
+    <div
+      class="jsx-3957274593 card-content"
+    >
+      <div
+        class="jsx-3957274593 card-main"
+      >
+        <div
+          class="jsx-3957274593 card-header"
+        >
+          <h3
+            class="jsx-3957274593 card-title"
+          >
+            Default Card
+          </h3>
+        </div>
+        <div
+          class="jsx-3957274593 card-body"
+        >
+          <p>
+            This is the card content
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ContainerQueryCard Snapshots renders expanded variant correctly 1`] = `
+<div>
+  <div
+    class="jsx-3957274593 container-query-card  expanded"
+    style="width: 100%; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); background-color: white;"
+  >
+    <div
+      class="jsx-3957274593 card-content"
+    >
+      <div
+        class="jsx-3957274593 card-main"
+      >
+        <div
+          class="jsx-3957274593 card-header"
+        >
+          <h3
+            class="jsx-3957274593 card-title"
+          >
+            Expanded Card
+          </h3>
+        </div>
+        <div
+          class="jsx-3957274593 card-body"
+        >
+          <p>
+            This is the expanded card content
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ContainerQueryCard Snapshots renders with custom className correctly 1`] = `
+<div>
+  <div
+    class="jsx-3957274593 container-query-card custom-class default"
+    style="width: 100%; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); background-color: white;"
+  >
+    <div
+      class="jsx-3957274593 card-content"
+    >
+      <div
+        class="jsx-3957274593 card-main"
+      >
+        <div
+          class="jsx-3957274593 card-header"
+        >
+          <h3
+            class="jsx-3957274593 card-title"
+          >
+            Card with Custom Class
+          </h3>
+        </div>
+        <div
+          class="jsx-3957274593 card-body"
+        >
+          <p>
+            This is a card with a custom class
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ContainerQueryCard Snapshots renders with custom containerName correctly 1`] = `
+<div>
+  <div
+    class="jsx-3957274593 container-query-card  default"
+    style="width: 100%; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); background-color: white;"
+  >
+    <div
+      class="jsx-3957274593 card-content"
+    >
+      <div
+        class="jsx-3957274593 card-main"
+      >
+        <div
+          class="jsx-3957274593 card-header"
+        >
+          <h3
+            class="jsx-3957274593 card-title"
+          >
+            Card with Container Name
+          </h3>
+        </div>
+        <div
+          class="jsx-3957274593 card-body"
+        >
+          <p>
+            This is a card with a custom container name
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ContainerQueryCard Snapshots renders with footer actions correctly 1`] = `
+<div>
+  <div
+    class="jsx-3957274593 container-query-card  default"
+    style="width: 100%; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); background-color: white;"
+  >
+    <div
+      class="jsx-3957274593 card-content"
+    >
+      <div
+        class="jsx-3957274593 card-main"
+      >
+        <div
+          class="jsx-3957274593 card-header"
+        >
+          <h3
+            class="jsx-3957274593 card-title"
+          >
+            Card with Footer Actions
+          </h3>
+        </div>
+        <div
+          class="jsx-3957274593 card-body"
+        >
+          <p>
+            This is a card with footer actions
+          </p>
+        </div>
+        <div
+          class="jsx-3957274593 card-footer"
+        >
+          <button>
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ContainerQueryCard Snapshots renders with header actions correctly 1`] = `
+<div>
+  <div
+    class="jsx-3957274593 container-query-card  default"
+    style="width: 100%; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); background-color: white;"
+  >
+    <div
+      class="jsx-3957274593 card-content"
+    >
+      <div
+        class="jsx-3957274593 card-main"
+      >
+        <div
+          class="jsx-3957274593 card-header"
+        >
+          <h3
+            class="jsx-3957274593 card-title"
+          >
+            Card with Header Actions
+          </h3>
+          <div
+            class="jsx-3957274593 card-actions"
+          >
+            <button>
+              Action
+            </button>
+          </div>
+        </div>
+        <div
+          class="jsx-3957274593 card-body"
+        >
+          <p>
+            This is a card with header actions
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ContainerQueryCard Snapshots renders with image correctly 1`] = `
+<div>
+  <div
+    class="jsx-3957274593 container-query-card  default"
+    style="width: 100%; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); background-color: white;"
+  >
+    <div
+      class="jsx-3957274593 card-content"
+    >
+      <div
+        class="jsx-3957274593 card-image"
+      >
+        <img
+          alt="Card with Image"
+          class="jsx-3957274593"
+          src="/test-image.jpg"
+        />
+      </div>
+      <div
+        class="jsx-3957274593 card-main"
+      >
+        <div
+          class="jsx-3957274593 card-header"
+        >
+          <h3
+            class="jsx-3957274593 card-title"
+          >
+            Card with Image
+          </h3>
+        </div>
+        <div
+          class="jsx-3957274593 card-body"
+        >
+          <p>
+            This is a card with an image
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

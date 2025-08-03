@@ -1,0 +1,185 @@
+/**
+ * High Contrast Mode Styles
+ * 
+ * This file contains styles that are applied when high contrast mode is enabled.
+ * It increases contrast ratios for better visibility and accessibility.
+ */
+
+/* Root variables for high contrast mode */
+.high-contrast {
+  /* Increase contrast for light theme */
+  &:not(.dark) {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 40.0%; /* Darker primary for better contrast */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 92.1%; /* Lighter secondary for better contrast */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 93.1%; /* Lighter muted for better contrast */
+    --muted-foreground: 215.4 16.3% 36.9%; /* Darker muted foreground */
+    --accent: 210 40% 90.1%; /* Lighter accent for better contrast */
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 50.2%; /* Adjusted destructive for better contrast */
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 81.4%; /* Darker border for better contrast */
+    --input: 214.3 31.8% 81.4%;
+    --ring: 221.2 83.2% 40.0%; /* Darker ring for better contrast */
+  }
+
+  /* Increase contrast for dark theme */
+  &.dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 69.8%; /* Lighter primary for better contrast */
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 27.5%; /* Lighter secondary for better contrast */
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 27.5%; /* Lighter muted for better contrast */
+    --muted-foreground: 215 20.2% 75.1%; /* Lighter muted foreground */
+    --accent: 217.2 32.6% 27.5%; /* Lighter accent for better contrast */
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 40.6%; /* Adjusted destructive for better contrast */
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 37.5%; /* Lighter border for better contrast */
+    --input: 217.2 32.6% 37.5%;
+    --ring: 224.3 76.5% 68%; /* Lighter ring for better contrast */
+  }
+
+  /* Increase focus outline width and contrast */
+  :focus-visible {
+    outline: 3px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Increase text contrast */
+  body {
+    color: hsl(var(--foreground));
+  }
+
+  /* Increase border contrast */
+  .border {
+    border-color: hsl(var(--border));
+    border-width: 2px;
+  }
+
+  /* Increase button contrast */
+  .btn {
+    border-width: 2px;
+  }
+
+  .btn-primary {
+    color: hsl(var(--primary-foreground));
+    background-color: hsl(var(--primary));
+    border-color: transparent;
+  }
+
+  .btn-secondary {
+    color: hsl(var(--secondary-foreground));
+    background-color: hsl(var(--secondary));
+    border-color: hsl(var(--border));
+  }
+
+  .btn-outline {
+    border-color: hsl(var(--border));
+    border-width: 2px;
+  }
+
+  /* Increase form control contrast */
+  input, select, textarea {
+    border-width: 2px;
+    border-color: hsl(var(--border));
+  }
+
+  /* Increase link contrast */
+  a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* Increase contrast for disabled elements */
+  [disabled] {
+    opacity: 0.7;
+  }
+
+  /* Increase contrast for placeholder text */
+  ::placeholder {
+    color: hsl(var(--muted-foreground));
+    opacity: 0.8;
+  }
+
+  /* Increase contrast for charts and data visualizations */
+  .chart-container {
+    border-width: 2px;
+  }
+
+  /* Increase contrast for tabs */
+  .tab-active {
+    border-bottom-width: 3px;
+  }
+
+  /* Increase contrast for badges */
+  .badge {
+    border-width: 2px;
+  }
+
+  /* Increase contrast for card components */
+  .card {
+    border-width: 2px;
+  }
+
+  /* Increase contrast for icons */
+  svg {
+    stroke-width: 2px;
+  }
+
+  /* Increase contrast for table elements */
+  table th {
+    border-width: 2px;
+    border-color: hsl(var(--border));
+  }
+
+  table td {
+    border-width: 1px;
+    border-color: hsl(var(--border));
+  }
+
+  /* Increase contrast for navigation */
+  .nav-link-active {
+    font-weight: bold;
+    border-width: 2px;
+  }
+}
+
+/* Contrast checker debug utility */
+.contrast-debug {
+  position: relative;
+  
+  &::after {
+    content: attr(data-contrast);
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 2px 5px;
+    font-size: 10px;
+    border-radius: 3px;
+    z-index: 100;
+  }
+  
+  &.contrast-fail::after {
+    background: rgba(255, 0, 0, 0.7);
+  }
+  
+  &.contrast-pass::after {
+    background: rgba(0, 128, 0, 0.7);
+  }
+}

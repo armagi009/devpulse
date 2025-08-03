@@ -1,0 +1,113 @@
+/**
+ * Middleware
+ * Handles authentication, route protection, and onboarding flow
+ */
+
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
+import { getDevModeConfig } from '@/lib/config/dev-mode';
+import { UserRole } from '@/lib/types/roles';
+
+/**
+ * Middleware function to protect routes and handle onboarding
+ */
+export async function middleware(request: NextRequest) {
+  // Get the pathname
+  const path = request.nextUrl.pathname;
+
+  // Define public paths that don't require authentication
+  const publicPaths = ['/', '/auth/signin', '/auth/error', '/auth/mock/select'];
+  
+  // Add dev paths if in mock mode
+  const config = getDevModeConfig();
+  if (config.useMockAuth || config.useMockApi) {
+    publicPaths.push('/dev/mock-data');
+  }
+  
+  const isPublicPath = publicPaths.some(publicPath => 
+    path === publicPath || path.startsWith('/api/auth/') || path.startsWith('/api/mock/')
+  );
+
+  // Get the token
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  // Check if the user is authenticated
+  const isAuthenticated = !!token;
+
+  // If the path is not public and the user is not authenticated,
+  // redirect to the sign-in page
+  if (!isPublicPath && !isAuthenticated) {
+    const signInUrl = new URL('/auth/signin', request.url);
+    signInUrl.searchParams.set('callbackUrl', path);
+    return NextResponse.redirect(signInUrl);
+  }
+
+  // If the path is the sign-in page and the user is authenticated,
+  // redirect to the dashboard
+  if (path === '/auth/signin' && isAuthenticated) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+  
+  // Check if the user is a new user (no onboarding completed)
+  if (isAuthenticated && token.isNewUser === true && 
+      !path.startsWith('/onboarding') && 
+      !path.startsWith('/api/') && 
+      !path.startsWith('/auth/')) {
+    // Redirect to onboarding flow
+    return NextResponse.redirect(new URL('/onboarding/welcome', request.url));
+  }
+  
+  // Role-based access control for specific paths
+  if (isAuthenticated && token.role) {
+    // Admin-only paths
+    const adminOnlyPaths = ['/admin', '/settings/system'];
+    if (adminOnlyPaths.some(adminPath => path.startsWith(adminPath)) && token.role !== UserRole.ADMINISTRATOR) {
+      return NextResponse.redirect(new URL('/unauthorized', request.url));
+    }
+    
+    // Team lead paths
+    const teamLeadPaths = ['/dashboard/team-management'];
+    if (teamLeadPaths.some(teamPath => path.startsWith(teamPath)) && 
+        token.role !== UserRole.TEAM_LEAD && 
+        token.role !== UserRole.ADMINISTRATOR) {
+      return NextResponse.redirect(new URL('/unauthorized', request.url));
+    }
+    
+    // Redirect to role-specific dashboard if accessing the generic dashboard
+    if (path === '/dashboard') {
+      switch (token.role) {
+        case UserRole.DEVELOPER:
+          return NextResponse.redirect(new URL('/dashboard/developer', request.url));
+        case UserRole.TEAM_LEAD:
+          return NextResponse.redirect(new URL('/dashboard/team-lead', request.url));
+        case UserRole.ADMINISTRATOR:
+          return NextResponse.redirect(new URL('/dashboard/admin', request.url));
+        default:
+          // Default to developer dashboard
+          return NextResponse.redirect(new URL('/dashboard/developer', request.url));
+      }
+    }
+  }
+
+  // Continue with the request
+  return NextResponse.next();
+}
+
+/**
+ * Configure which paths the middleware should run on
+ */
+export const config = {
+  matcher: [
+    /*
+     * Match all paths except:
+     * 1. /api routes that don't require authentication
+     * 2. /_next (static files)
+     * 3. /favicon.ico, /manifest.json, etc.
+     */
+    '/((?!_next/static|_next/image|favicon.ico|manifest.json|robots.txt).*)',
+  ],
+};

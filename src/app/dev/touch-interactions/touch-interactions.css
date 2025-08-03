@@ -1,0 +1,220 @@
+/**
+ * Touch Interactions specific styles
+ */
+
+/* Enhanced touch target styles */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px;
+  touch-action: manipulation; /* Improves touch responsiveness */
+}
+
+.touch-target-large {
+  min-height: 48px;
+  min-width: 48px;
+  padding: 12px;
+  touch-action: manipulation;
+}
+
+/* Prevent text selection during touch interactions */
+.no-select {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none;   /* Safari */
+  -khtml-user-select: none;    /* Konqueror HTML */
+  -moz-user-select: none;      /* Firefox */
+  -ms-user-select: none;       /* Internet Explorer/Edge */
+  user-select: none;           /* Non-prefixed version */
+}
+
+/* Improved touch feedback */
+.touch-ripple {
+  position: relative;
+  overflow: hidden;
+  transform: translate3d(0, 0, 0); /* Force GPU acceleration */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.touch-ripple::after {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.2) 10%, transparent 10.01%);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  transform: scale(10, 10);
+  opacity: 0;
+  transition: transform 0.4s, opacity 0.5s;
+}
+
+.touch-ripple:active::after {
+  transform: scale(0, 0);
+  opacity: 0.3;
+  transition: 0s;
+}
+
+/* Swipe action animations */
+.swipe-action-container {
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.swipe-content {
+  transition: transform 0.3s ease;
+}
+
+.swipe-left {
+  transform: translateX(-100px);
+}
+
+.swipe-right {
+  transform: translateX(100px);
+}
+
+.swipe-action {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 500;
+  padding: 0 16px;
+}
+
+.swipe-action-left {
+  left: 0;
+}
+
+.swipe-action-right {
+  right: 0;
+}
+
+/* Touch-friendly form controls */
+.touch-input {
+  min-height: 48px;
+  font-size: 16px; /* Prevents iOS zoom */
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+.touch-checkbox,
+.touch-radio {
+  min-width: 24px;
+  min-height: 24px;
+  margin: 4px;
+}
+
+/* Touch-friendly slider */
+.touch-slider {
+  height: 24px;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  background: transparent;
+}
+
+.touch-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #4a90e2;
+  cursor: pointer;
+  margin-top: -8px;
+}
+
+.touch-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #4a90e2;
+  cursor: pointer;
+}
+
+.touch-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  background: #ddd;
+  border-radius: 4px;
+}
+
+.touch-slider::-moz-range-track {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  background: #ddd;
+  border-radius: 4px;
+}
+
+/* Touch-friendly toggle switch */
+.touch-toggle {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.touch-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.touch-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.touch-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .touch-toggle-slider {
+  background-color: #4a90e2;
+}
+
+input:checked + .touch-toggle-slider:before {
+  transform: translateX(26px);
+}
+
+/* Safe area insets for modern mobile devices */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.safe-area-left {
+  padding-left: env(safe-area-inset-left, 0);
+}
+
+.safe-area-right {
+  padding-right: env(safe-area-inset-right, 0);
+}

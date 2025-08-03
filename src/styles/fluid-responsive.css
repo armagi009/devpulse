@@ -1,0 +1,586 @@
+/**
+ * Fluid Responsive Layout Styles
+ * 
+ * Global CSS for implementing fluid responsive layouts throughout the application.
+ * This file provides a comprehensive set of utility classes for building
+ * responsive layouts using CSS Grid, Flexbox, and Container Queries.
+ */
+
+/* Enable container queries globally */
+:root {
+  container-type: inline-size;
+}
+
+/* Fluid spacing variables - scales with viewport width */
+:root {
+  --space-2xs: clamp(0.125rem, 0.25vw, 0.25rem);
+  --space-xs: clamp(0.25rem, 0.5vw, 0.5rem);
+  --space-sm: clamp(0.5rem, 1vw, 1rem);
+  --space-md: clamp(1rem, 2vw, 1.5rem);
+  --space-lg: clamp(1.5rem, 3vw, 2.5rem);
+  --space-xl: clamp(2rem, 4vw, 3.5rem);
+  --space-2xl: clamp(2.5rem, 5vw, 4rem);
+  
+  /* Negative space values for margins */
+  --space-neg-xs: clamp(-0.5rem, -0.5vw, -0.25rem);
+  --space-neg-sm: clamp(-1rem, -1vw, -0.5rem);
+  --space-neg-md: clamp(-1.5rem, -2vw, -1rem);
+}
+
+/* Fluid typography variables - scales with viewport width */
+:root {
+  --font-size-xs: clamp(0.75rem, 1vw, 0.875rem);
+  --font-size-sm: clamp(0.875rem, 1.2vw, 1rem);
+  --font-size-base: clamp(1rem, 1.5vw, 1.125rem);
+  --font-size-lg: clamp(1.125rem, 2vw, 1.25rem);
+  --font-size-xl: clamp(1.25rem, 2.5vw, 1.5rem);
+  --font-size-2xl: clamp(1.5rem, 3vw, 1.875rem);
+  --font-size-3xl: clamp(1.875rem, 4vw, 2.25rem);
+  --font-size-4xl: clamp(2.25rem, 5vw, 3rem);
+  --font-size-5xl: clamp(3rem, 6vw, 4rem);
+}
+
+/* Border radius variables */
+:root {
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-full: 9999px;
+}
+
+/* Transition variables */
+:root {
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 350ms ease;
+}
+
+/* ===== GRID LAYOUTS ===== */
+
+/* Basic responsive grid layout */
+.fluid-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: var(--space-md);
+}
+
+/* Grid with different column counts at different breakpoints */
+.fluid-grid-cols {
+  display: grid;
+  gap: var(--space-md);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .fluid-grid-cols {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .fluid-grid-cols {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .fluid-grid-cols {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Grid with different column sizes */
+.fluid-grid-12 {
+  display: grid;
+  gap: var(--space-md);
+  grid-template-columns: repeat(12, 1fr);
+}
+
+/* Grid column span utilities */
+.col-span-1 { grid-column: span 1; }
+.col-span-2 { grid-column: span 2; }
+.col-span-3 { grid-column: span 3; }
+.col-span-4 { grid-column: span 4; }
+.col-span-5 { grid-column: span 5; }
+.col-span-6 { grid-column: span 6; }
+.col-span-7 { grid-column: span 7; }
+.col-span-8 { grid-column: span 8; }
+.col-span-9 { grid-column: span 9; }
+.col-span-10 { grid-column: span 10; }
+.col-span-11 { grid-column: span 11; }
+.col-span-12 { grid-column: span 12; }
+
+/* Responsive column spans */
+@media (min-width: 640px) {
+  .md\\:col-span-1 { grid-column: span 1; }
+  .md\\:col-span-2 { grid-column: span 2; }
+  .md\\:col-span-3 { grid-column: span 3; }
+  .md\\:col-span-4 { grid-column: span 4; }
+  .md\\:col-span-5 { grid-column: span 5; }
+  .md\\:col-span-6 { grid-column: span 6; }
+  .md\\:col-span-7 { grid-column: span 7; }
+  .md\\:col-span-8 { grid-column: span 8; }
+  .md\\:col-span-9 { grid-column: span 9; }
+  .md\\:col-span-10 { grid-column: span 10; }
+  .md\\:col-span-11 { grid-column: span 11; }
+  .md\\:col-span-12 { grid-column: span 12; }
+}
+
+@media (min-width: 1024px) {
+  .lg\\:col-span-1 { grid-column: span 1; }
+  .lg\\:col-span-2 { grid-column: span 2; }
+  .lg\\:col-span-3 { grid-column: span 3; }
+  .lg\\:col-span-4 { grid-column: span 4; }
+  .lg\\:col-span-5 { grid-column: span 5; }
+  .lg\\:col-span-6 { grid-column: span 6; }
+  .lg\\:col-span-7 { grid-column: span 7; }
+  .lg\\:col-span-8 { grid-column: span 8; }
+  .lg\\:col-span-9 { grid-column: span 9; }
+  .lg\\:col-span-10 { grid-column: span 10; }
+  .lg\\:col-span-11 { grid-column: span 11; }
+  .lg\\:col-span-12 { grid-column: span 12; }
+}
+
+/* Grid areas layout */
+.fluid-layout {
+  display: grid;
+  gap: var(--space-md);
+  padding: var(--space-md);
+}
+
+/* Mobile-first grid layout */
+.fluid-layout {
+  grid-template-areas:
+    "header"
+    "main"
+    "sidebar"
+    "footer";
+}
+
+/* Tablet layout */
+@media (min-width: 640px) {
+  .fluid-layout {
+    grid-template-areas:
+      "header header"
+      "sidebar main"
+      "footer footer";
+    grid-template-columns: 1fr 2fr;
+  }
+}
+
+/* Desktop layout */
+@media (min-width: 1024px) {
+  .fluid-layout {
+    grid-template-areas:
+      "header header header"
+      "sidebar main aside"
+      "footer footer footer";
+    grid-template-columns: 1fr 3fr 1fr;
+  }
+}
+
+/* ===== FLEXBOX LAYOUTS ===== */
+
+/* Basic flex layouts */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* Flex direction utilities */
+.flex-row-reverse {
+  flex-direction: row-reverse;
+}
+
+.flex-column-reverse {
+  flex-direction: column-reverse;
+}
+
+/* Responsive flex direction */
+@media (min-width: 640px) {
+  .md\\:flex-row {
+    flex-direction: row;
+  }
+  
+  .md\\:flex-column {
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\\:flex-row {
+    flex-direction: row;
+  }
+  
+  .lg\\:flex-column {
+    flex-direction: column;
+  }
+}
+
+/* Flex alignment utilities */
+.items-start {
+  align-items: flex-start;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-end {
+  align-items: flex-end;
+}
+
+.justify-start {
+  justify-content: flex-start;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-around {
+  justify-content: space-around;
+}
+
+.justify-evenly {
+  justify-content: space-evenly;
+}
+
+/* Flex grow/shrink utilities */
+.flex-grow {
+  flex-grow: 1;
+}
+
+.flex-shrink {
+  flex-shrink: 1;
+}
+
+.flex-no-grow {
+  flex-grow: 0;
+}
+
+.flex-no-shrink {
+  flex-shrink: 0;
+}
+
+/* Flex basis utilities */
+.flex-basis-0 {
+  flex-basis: 0%;
+}
+
+.flex-basis-25 {
+  flex-basis: 25%;
+}
+
+.flex-basis-33 {
+  flex-basis: 33.333333%;
+}
+
+.flex-basis-50 {
+  flex-basis: 50%;
+}
+
+.flex-basis-66 {
+  flex-basis: 66.666667%;
+}
+
+.flex-basis-75 {
+  flex-basis: 75%;
+}
+
+.flex-basis-100 {
+  flex-basis: 100%;
+}
+
+.flex-basis-auto {
+  flex-basis: auto;
+}
+
+/* Responsive flex basis */
+@media (min-width: 640px) {
+  .md\\:flex-basis-0 { flex-basis: 0%; }
+  .md\\:flex-basis-25 { flex-basis: 25%; }
+  .md\\:flex-basis-33 { flex-basis: 33.333333%; }
+  .md\\:flex-basis-50 { flex-basis: 50%; }
+  .md\\:flex-basis-66 { flex-basis: 66.666667%; }
+  .md\\:flex-basis-75 { flex-basis: 75%; }
+  .md\\:flex-basis-100 { flex-basis: 100%; }
+  .md\\:flex-basis-auto { flex-basis: auto; }
+}
+
+@media (min-width: 1024px) {
+  .lg\\:flex-basis-0 { flex-basis: 0%; }
+  .lg\\:flex-basis-25 { flex-basis: 25%; }
+  .lg\\:flex-basis-33 { flex-basis: 33.333333%; }
+  .lg\\:flex-basis-50 { flex-basis: 50%; }
+  .lg\\:flex-basis-66 { flex-basis: 66.666667%; }
+  .lg\\:flex-basis-75 { flex-basis: 75%; }
+  .lg\\:flex-basis-100 { flex-basis: 100%; }
+  .lg\\:flex-basis-auto { flex-basis: auto; }
+}
+
+/* ===== SPACING UTILITIES ===== */
+
+/* Responsive spacing utilities */
+.fluid-p {
+  padding: var(--space-md);
+}
+
+.fluid-m {
+  margin: var(--space-md);
+}
+
+.fluid-gap {
+  gap: var(--space-md);
+}
+
+/* Directional padding */
+.fluid-pt { padding-top: var(--space-md); }
+.fluid-pr { padding-right: var(--space-md); }
+.fluid-pb { padding-bottom: var(--space-md); }
+.fluid-pl { padding-left: var(--space-md); }
+.fluid-px { padding-left: var(--space-md); padding-right: var(--space-md); }
+.fluid-py { padding-top: var(--space-md); padding-bottom: var(--space-md); }
+
+/* Directional margin */
+.fluid-mt { margin-top: var(--space-md); }
+.fluid-mr { margin-right: var(--space-md); }
+.fluid-mb { margin-bottom: var(--space-md); }
+.fluid-ml { margin-left: var(--space-md); }
+.fluid-mx { margin-left: var(--space-md); margin-right: var(--space-md); }
+.fluid-my { margin-top: var(--space-md); margin-bottom: var(--space-md); }
+
+/* Size variants */
+.fluid-p-xs { padding: var(--space-xs); }
+.fluid-p-sm { padding: var(--space-sm); }
+.fluid-p-md { padding: var(--space-md); }
+.fluid-p-lg { padding: var(--space-lg); }
+.fluid-p-xl { padding: var(--space-xl); }
+
+.fluid-m-xs { margin: var(--space-xs); }
+.fluid-m-sm { margin: var(--space-sm); }
+.fluid-m-md { margin: var(--space-md); }
+.fluid-m-lg { margin: var(--space-lg); }
+.fluid-m-xl { margin: var(--space-xl); }
+
+.fluid-gap-xs { gap: var(--space-xs); }
+.fluid-gap-sm { gap: var(--space-sm); }
+.fluid-gap-md { gap: var(--space-md); }
+.fluid-gap-lg { gap: var(--space-lg); }
+.fluid-gap-xl { gap: var(--space-xl); }
+
+/* ===== TYPOGRAPHY UTILITIES ===== */
+
+/* Responsive typography classes */
+.fluid-text-xs {
+  font-size: var(--font-size-xs);
+}
+
+.fluid-text-sm {
+  font-size: var(--font-size-sm);
+}
+
+.fluid-text-base {
+  font-size: var(--font-size-base);
+}
+
+.fluid-text-lg {
+  font-size: var(--font-size-lg);
+}
+
+.fluid-text-xl {
+  font-size: var(--font-size-xl);
+}
+
+.fluid-text-2xl {
+  font-size: var(--font-size-2xl);
+}
+
+.fluid-text-3xl {
+  font-size: var(--font-size-3xl);
+}
+
+.fluid-text-4xl {
+  font-size: var(--font-size-4xl);
+}
+
+.fluid-text-5xl {
+  font-size: var(--font-size-5xl);
+}
+
+/* Line height utilities */
+.fluid-leading-tight { line-height: 1.1; }
+.fluid-leading-normal { line-height: 1.5; }
+.fluid-leading-loose { line-height: 1.8; }
+
+/* Font weight utilities */
+.fluid-font-light { font-weight: 300; }
+.fluid-font-normal { font-weight: 400; }
+.fluid-font-medium { font-weight: 500; }
+.fluid-font-semibold { font-weight: 600; }
+.fluid-font-bold { font-weight: 700; }
+
+/* ===== CONTAINER QUERY UTILITIES ===== */
+
+/* Container query base class */
+.cq-card {
+  container-type: inline-size;
+  width: 100%;
+}
+
+/* Container query breakpoints */
+@container (max-width: 300px) {
+  .cq-card-content {
+    flex-direction: column;
+  }
+  
+  .cq-card-title {
+    margin-bottom: var(--space-sm);
+  }
+  
+  .cq-card-image {
+    width: 100%;
+    margin-bottom: var(--space-sm);
+  }
+}
+
+@container (min-width: 301px) and (max-width: 600px) {
+  .cq-card-content {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .cq-card-title {
+    flex-basis: 100%;
+    margin-bottom: var(--space-sm);
+  }
+  
+  .cq-card-image {
+    width: 30%;
+    margin-right: var(--space-sm);
+  }
+}
+
+@container (min-width: 601px) {
+  .cq-card-content {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .cq-card-title {
+    flex: 0 0 30%;
+    margin-bottom: 0;
+  }
+  
+  .cq-card-image {
+    width: 20%;
+    margin-right: var(--space-md);
+  }
+}
+
+/* Container query size utilities */
+.cq-small {
+  container-name: small;
+}
+
+.cq-medium {
+  container-name: medium;
+}
+
+.cq-large {
+  container-name: large;
+}
+
+/* Named container queries */
+@container small (min-width: 1px) {
+  .cq-content {
+    padding: var(--space-xs);
+  }
+}
+
+@container medium (min-width: 1px) {
+  .cq-content {
+    padding: var(--space-sm);
+  }
+}
+
+@container large (min-width: 1px) {
+  .cq-content {
+    padding: var(--space-md);
+  }
+}
+
+/* ===== RESPONSIVE VISIBILITY UTILITIES ===== */
+
+.hide-on-mobile {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .hide-on-mobile {
+    display: block;
+  }
+  
+  .hide-on-tablet {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hide-on-tablet {
+    display: block;
+  }
+  
+  .hide-on-desktop {
+    display: none;
+  }
+}
+
+/* Show only on specific breakpoints */
+.show-on-mobile {
+  display: block;
+}
+
+.show-on-tablet {
+  display: none;
+}
+
+.show-on-desktop {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .show-on-mobile {
+    display: none;
+  }
+  
+  .show-on-tablet {
+    display: block;
+  }
+}
+
+@media (min-width: 1024px) {
+  .show-on-tablet {
+    display: none;
+  }
+  
+  .show-on-desktop {
+    display: block;
+  }
+}

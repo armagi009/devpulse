@@ -1,0 +1,171 @@
+'use client';
+
+import React from 'react';
+import FilterStateProvider from '@/components/ui/FilterStateProvider';
+import TeamCollaborationMetrics from '@/components/analytics/TeamCollaborationMetrics';
+import TeamVelocityChart from '@/components/analytics/TeamVelocityChart';
+import CollaborationNetworkChart from '@/components/analytics/CollaborationNetworkChart';
+import KnowledgeDistribution from '@/components/analytics/KnowledgeDistribution';
+
+export default function TeamPage() {
+  const pageId = 'team-overview';
+  
+  // Filter options
+  const filterOptions = [
+    {
+      id: 'team',
+      label: 'Team',
+      options: [
+        { value: 'team1', label: 'Frontend Team' },
+        { value: 'team2', label: 'Backend Team' },
+        { value: 'team3', label: 'DevOps Team' },
+      ],
+    },
+    {
+      id: 'metric',
+      label: 'Metric Focus',
+      options: [
+        { value: 'velocity', label: 'Velocity' },
+        { value: 'collaboration', label: 'Collaboration' },
+        { value: 'knowledge', label: 'Knowledge Distribution' },
+        { value: 'all', label: 'All Metrics' },
+      ],
+    },
+  ];
+  
+  // Sort options
+  const sortOptions = [
+    { value: 'date_desc', label: 'Date (Newest First)' },
+    { value: 'date_asc', label: 'Date (Oldest First)' },
+    { value: 'performance_desc', label: 'Performance (Highest First)' },
+    { value: 'performance_asc', label: 'Performance (Lowest First)' },
+  ];
+  
+  // Fetch data function
+  const fetchData = async (filterState: any) => {
+    // Format dates for API
+    const startDate = filterState.timeRange.start.toISOString().split('T')[0];
+    const endDate = filterState.timeRange.end.toISOString().split('T')[0];
+    
+    // Build query params
+    const params = new URLSearchParams({
+      start: startDate,
+      end: endDate,
+      sort: filterState.sortBy || 'date_desc',
+    });
+    
+    // Add filter params
+    if (filterState.filters.team) {
+      params.append('team', filterState.filters.team);
+    }
+    
+    if (filterState.filters.metric) {
+      params.append('metric', filterState.filters.metric);
+    }
+    
+    // Fetch data from API
+    const response = await fetch(`/api/analytics/team?${params.toString()}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch team metrics');
+    }
+    
+    return await response.json();
+  };
+  
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Team Overview
+        </h1>
+      </div>
+      
+      {/* Filter State Provider */}
+      <FilterStateProvider
+        pageId={pageId}
+        filterOptions={filterOptions}
+        sortOptions={sortOptions}
+        showTimeRange={true}
+        fetchData={fetchData}
+        className="bg-white p-4 rounded-lg shadow dark:bg-gray-800"
+      >
+        {(data, loading) => (
+          <div className="space-y-6 mt-6">
+            {/* Team Collaboration Summary */}
+            <div className="bg-white p-6 rounded-lg shadow dark:bg-gray-800">
+              <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                Team Collaboration Summary
+              </h2>
+              
+              {loading ? (
+                <div className="h-20 rounded-lg bg-gray-200 animate-pulse dark:bg-gray-700"></div>
+              ) : (
+                data && <TeamCollaborationMetrics data={data.collaboration} />
+              )}
+            </div>
+            
+            {/* Charts Grid */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              {/* Team Velocity Chart */}
+              <div className="bg-white p-6 rounded-lg shadow dark:bg-gray-800">
+                <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                  Team Velocity
+                </h2>
+                
+                {loading ? (
+                  <div className="h-64 rounded-lg bg-gray-200 animate-pulse dark:bg-gray-700"></div>
+                ) : (
+                  data && <TeamVelocityChart data={data.velocity} />
+                )}
+              </div>
+              
+              {/* Collaboration Network */}
+              <div className="bg-white p-6 rounded-lg shadow dark:bg-gray-800">
+                <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                  Collaboration Network
+                </h2>
+                
+                {loading ? (
+                  <div className="h-64 rounded-lg bg-gray-200 animate-pulse dark:bg-gray-700"></div>
+                ) : (
+                  data && <CollaborationNetworkChart data={data.network} />
+                )}
+              </div>
+              
+              {/* Knowledge Distribution */}
+              <div className="bg-white p-6 rounded-lg shadow dark:bg-gray-800">
+                <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                  Knowledge Distribution
+                </h2>
+                
+                {loading ? (
+                  <div className="h-64 rounded-lg bg-gray-200 animate-pulse dark:bg-gray-700"></div>
+                ) : (
+                  data && <KnowledgeDistribution data={data.knowledge} />
+                )}
+              </div>
+              
+              {/* Code Contribution Heatmap */}
+              <div className="bg-white p-6 rounded-lg shadow dark:bg-gray-800">
+                <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                  Code Contribution Heatmap
+                </h2>
+                
+                {loading ? (
+                  <div className="h-64 rounded-lg bg-gray-200 animate-pulse dark:bg-gray-700"></div>
+                ) : (
+                  data && (
+                    <div className="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                      Code contribution heatmap visualization
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </FilterStateProvider>
+    </div>
+  );
+}

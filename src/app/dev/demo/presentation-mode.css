@@ -1,0 +1,102 @@
+/**
+ * Presentation Mode Styles
+ * 
+ * These styles are applied when the application is in presentation mode
+ * to optimize the interface for demonstrations and presentations.
+ */
+
+/* Global presentation mode styles */
+body.presentation-mode {
+  /* Increase base font size for better readability */
+  font-size: 18px;
+}
+
+/* Increase heading sizes */
+body.presentation-mode h1 {
+  font-size: 2.5rem;
+}
+
+body.presentation-mode h2 {
+  font-size: 2rem;
+}
+
+body.presentation-mode h3 {
+  font-size: 1.75rem;
+}
+
+/* Increase button and input sizes */
+body.presentation-mode button,
+body.presentation-mode .btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.125rem;
+}
+
+body.presentation-mode input,
+body.presentation-mode select,
+body.presentation-mode textarea {
+  padding: 0.75rem;
+  font-size: 1.125rem;
+}
+
+/* Increase card padding */
+body.presentation-mode .card,
+body.presentation-mode [class*="rounded-lg"] {
+  padding: 1.5rem;
+}
+
+/* Increase spacing */
+body.presentation-mode .space-y-4 {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Increase chart sizes */
+body.presentation-mode [class*="chart-container"] {
+  height: 400px !important;
+}
+
+/* Hide distracting elements */
+body.presentation-mode .notification-badge,
+body.presentation-mode .dev-mode-indicator,
+body.presentation-mode footer {
+  display: none !important;
+}
+
+/* Simplify navigation */
+body.presentation-mode nav {
+  padding: 1rem 2rem;
+}
+
+body.presentation-mode nav a,
+body.presentation-mode nav button {
+  font-size: 1.25rem;
+  padding: 0.75rem 1.25rem;
+}
+
+/* Highlight important elements */
+body.presentation-mode .highlight {
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
+  position: relative;
+  z-index: 10;
+}
+
+/* Add transition effects */
+body.presentation-mode * {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Increase table text size */
+body.presentation-mode table {
+  font-size: 1.125rem;
+}
+
+body.presentation-mode th,
+body.presentation-mode td {
+  padding: 1rem;
+}
+
+/* Increase chart tooltip size */
+body.presentation-mode [class*="tooltip"] {
+  font-size: 1rem !important;
+  padding: 0.75rem !important;
+}

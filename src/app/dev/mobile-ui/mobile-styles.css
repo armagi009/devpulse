@@ -1,0 +1,217 @@
+/**
+ * Mobile-specific styles for DevPulse
+ */
+
+/* Touch target sizing - ensures touch targets are at least 44x44px (iOS HIG recommendation) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px;
+}
+
+/* Larger touch targets for primary actions - 48x48px (Material Design recommendation) */
+.touch-target-large {
+  min-height: 48px;
+  min-width: 48px;
+  padding: 12px;
+}
+
+/* Increase spacing between touch targets */
+.touch-spacing > * + * {
+  margin-top: 8px;
+}
+
+.touch-spacing-horizontal > * + * {
+  margin-left: 8px;
+}
+
+/* Touch feedback - provides visual feedback for touch interactions */
+.touch-feedback {
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent; /* Remove default mobile tap highlight */
+}
+
+.touch-feedback::after {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.1) 10%, transparent 10.01%);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  transform: scale(10, 10);
+  opacity: 0;
+  transition: transform 0.3s, opacity 0.5s;
+}
+
+.touch-feedback:active::after {
+  transform: scale(0, 0);
+  opacity: 0.3;
+  transition: 0s;
+}
+
+/* Active state for touch elements */
+.touch-active {
+  transform: scale(0.97);
+  transition: transform 0.1s ease-in-out;
+}
+
+/* Improved touch form controls */
+.touch-form-control {
+  min-height: 48px;
+  padding: 12px 16px;
+  font-size: 16px; /* Prevents iOS zoom on focus */
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+/* Touch-friendly checkboxes and radio buttons */
+.touch-checkbox,
+.touch-radio {
+  min-width: 24px;
+  min-height: 24px;
+  margin: 4px;
+}
+
+/* Hide scrollbars but allow scrolling */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Bottom safe area padding for mobile devices with notches */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Progressive disclosure animations */
+.disclosure-enter {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out;
+}
+
+.disclosure-enter-active {
+  max-height: 500px;
+}
+
+.disclosure-exit {
+  max-height: 500px;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out;
+}
+
+.disclosure-exit-active {
+  max-height: 0;
+}
+
+/* Mobile-specific typography adjustments */
+@media (max-width: 640px) {
+  h1 {
+    font-size: 1.5rem !important;
+  }
+  
+  h2 {
+    font-size: 1.25rem !important;
+  }
+  
+  h3 {
+    font-size: 1.125rem !important;
+  }
+  
+  p, li {
+    font-size: 0.9375rem !important;
+  }
+}
+
+/* Bottom navigation adjustments for devices with home indicators */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .has-safe-area {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Mobile card optimizations */
+.mobile-card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Optimize tap targets for form elements on mobile */
+@media (max-width: 640px) {
+  input, 
+  select, 
+  textarea, 
+  button {
+    font-size: 16px !important; /* Prevents iOS zoom on focus */
+  }
+  
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-width: 20px;
+    min-height: 20px;
+  }
+}
+
+/* Mobile-specific grid layouts */
+.mobile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+/* Swipe animations */
+.swipe-left {
+  transform: translateX(-100px);
+  transition: transform 0.3s ease;
+}
+
+.swipe-right {
+  transform: translateX(100px);
+  transition: transform 0.3s ease;
+}
+
+.swipe-reset {
+  transform: translateX(0);
+  transition: transform 0.3s ease;
+}
+
+/* Bottom sheet animations */
+.bottom-sheet-enter {
+  transform: translateY(100%);
+}
+
+.bottom-sheet-enter-active {
+  transform: translateY(0);
+  transition: transform 0.3s ease-out;
+}
+
+.bottom-sheet-exit {
+  transform: translateY(0);
+}
+
+.bottom-sheet-exit-active {
+  transform: translateY(100%);
+  transition: transform 0.3s ease-in;
+}
+
+/* Mobile-specific focus styles */
+@media (max-width: 640px) {
+  :focus {
+    outline: none;
+  }
+  
+  .focus-visible {
+    outline: 2px solid rgba(59, 130, 246, 0.5);
+    outline-offset: 2px;
+  }
+}
