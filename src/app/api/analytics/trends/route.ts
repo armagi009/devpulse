@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 /**
  * Historical Trends API Route
  * Provides historical trend data for various metrics

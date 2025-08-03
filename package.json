@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
@@ -39,8 +39,12 @@
     "ci:build:full": "npm run db:generate && npm run build",
     "ci:e2e": "npm run prepare:dry-run && npm run test:e2e:ci",
     "setup:ci-cd": "node scripts/setup-ci-cd.js",
+    "setup:external-services": "node scripts/setup-external-services.js",
+    "verify:external-services": "node scripts/verify-external-services.js",
     "verify:ci-cd": "node scripts/verify-ci-operational.js",
-    "validate:ci-cd": "node scripts/validate-ci-setup.js"
+    "validate:ci-cd": "node scripts/validate-ci-setup.js",
+    "vercel-build": "prisma generate && next build",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
@@ -48,6 +52,7 @@
     "@radix-ui/react-popover": "^1.1.14",
     "@radix-ui/react-progress": "^1.1.7",
     "@radix-ui/react-tabs": "^1.0.4",
+    "@tailwindcss/postcss": "^4.1.11",
     "@tanstack/react-query": "^5.83.0",
     "@types/d3": "^7.4.3",
     "bullmq": "^5.1.1",

@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/auth-config';
 import { getRetentionPolicies, updateRetentionPolicies, applyRetentionPolicies } from '@/lib/utils/data-retention-service';
 import { z } from 'zod';
 

@@ -218,7 +218,7 @@ export class ApiIntegrationValidator {
       
       return results;
     } catch (error) {
-      this.errorDetector.addReproductionStep(`API integration validation failed: ${error.message}`);
+      this.errorDetector.addReproductionStep(`API integration validation failed: ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
   }
@@ -254,7 +254,7 @@ export class ApiIntegrationValidator {
     try {
       // Test the API endpoint directly
       const response = await this.testApiEndpointDirect(endpointTest);
-      result.actualStatus = response.status;
+      result.actualStatus = typeof response.status === 'function' ? response.status() : (response.status as unknown as number);
       result.responseTime = Date.now() - startTime;
       result.responseSize = (await response.text()).length;
       
@@ -267,7 +267,7 @@ export class ApiIntegrationValidator {
       }
 
       // Check if status is expected
-      result.success = endpointTest.expectedStatus.includes(response.status);
+      result.success = endpointTest.expectedStatus.includes(typeof response.status === 'function' ? response.status() : (response.status as unknown as number));
 
       // Test authentication if required
       if (endpointTest.requiresAuth && options.testAuthentication) {
@@ -296,9 +296,9 @@ export class ApiIntegrationValidator {
 
     } catch (error) {
       result.success = false;
-      result.errorMessage = error.message;
+      result.errorMessage = error instanceof Error ? error.message : String(error);
       result.responseTime = Date.now() - startTime;
-      this.errorDetector.addReproductionStep(`API endpoint test failed: ${error.message}`);
+      this.errorDetector.addReproductionStep(`API endpoint test failed: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     return result;
@@ -307,7 +307,7 @@ export class ApiIntegrationValidator {
   /**
    * Test API endpoint directly
    */
-  private async testApiEndpointDirect(endpointTest: ApiEndpointTest): Promise<Response> {
+  private async testApiEndpointDirect(endpointTest: ApiEndpointTest): Promise<any> {
     const url = `${this.page.url().split('/').slice(0, 3).join('/')}${endpointTest.endpoint}`;
     
     const requestOptions: any = {
@@ -353,7 +353,7 @@ export class ApiIntegrationValidator {
 
       return isProperlyProtected;
     } catch (error) {
-      this.errorDetector.addReproductionStep(`Authentication test error: ${error.message}`);
+      this.errorDetector.addReproductionStep(`Authentication test error: ${error instanceof Error ? error.message : String(error)}`);
       return false;
     }
   }
@@ -394,7 +394,7 @@ export class ApiIntegrationValidator {
 
       return isValid;
     } catch (error) {
-      this.errorDetector.addReproductionStep(`Mock data validation error: ${error.message}`);
+      this.errorDetector.addReproductionStep(`Mock data validation error: ${error instanceof Error ? error.message : String(error)}`);
       return false;
     }
   }
@@ -434,7 +434,7 @@ export class ApiIntegrationValidator {
 
       return hasProperErrorHandling;
     } catch (error) {
-      this.errorDetector.addReproductionStep(`Error state test failed: ${error.message}`);
+      this.errorDetector.addReproductionStep(`Error state test failed: ${error instanceof Error ? error.message : String(error)}`);
       return false;
     }
   }

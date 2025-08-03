@@ -198,7 +198,7 @@ export class ComprehensiveTestRunner extends EventEmitter {
       const aggregatedResults = await this.generateAggregatedResults(results);
       
       // Add aggregated results to the comprehensive results
-      results.aggregatedResults = aggregatedResults;
+      results.aggregatedResults = aggregatedResults || undefined;
       results.detectedErrors = this.detectedErrors;
 
       // Generate comprehensive final reports
@@ -806,6 +806,24 @@ export class ComprehensiveTestRunner extends EventEmitter {
       // For aggregation, we need to create a mock page/context since we're running outside of Playwright
       // In a real implementation, this would be handled differently
       
+      // Helper function to convert DetectedError to ErrorDetail
+      const convertToErrorDetail = (error: any) => ({
+        ...error,
+        reproductionInstructions: '',
+        debuggingContext: {
+          consoleContext: [],
+          pageState: { 
+            url: '', 
+            title: '', 
+            timestamp: new Date().toISOString(), 
+            viewport: { width: 1920, height: 1080 }, 
+            userAgent: '' 
+          }
+        },
+        relatedErrors: [],
+        fixSuggestion: ''
+      });
+      
       // Create a simple aggregator without page/context for now
       const SimpleAggregator = class {
         constructor(private outputDir: string) {}
@@ -827,21 +845,45 @@ export class ComprehensiveTestRunner extends EventEmitter {
                 totalIssuesFound: detectedErrors.length,
                 criticalIssuesCount: detectedErrors.filter(e => e.severity === 'critical').length,
                 estimatedFixTime: this.estimateFixTime(detectedErrors),
-                topPriorityActions: []
+                topPriorities: [],
+                overallHealth: detectedErrors.length === 0 ? 'excellent' : detectedErrors.filter(e => e.severity === 'critical').length > 0 ? 'poor' : 'good',
+                riskAssessment: 'medium',
+                recommendations: []
               },
               categorizedErrors: {
-                runtimeErrors: detectedErrors.filter(e => e.type === 'runtime'),
-                networkErrors: detectedErrors.filter(e => e.type === 'network'),
-                renderingErrors: detectedErrors.filter(e => e.type === 'rendering'),
-                navigationErrors: detectedErrors.filter(e => e.type === 'navigation')
+                runtimeErrors: detectedErrors.filter(e => e.type === 'runtime').map(convertToErrorDetail),
+                networkErrors: detectedErrors.filter(e => e.type === 'network').map(convertToErrorDetail),
+                renderingErrors: detectedErrors.filter(e => e.type === 'rendering').map(convertToErrorDetail),
+                navigationErrors: detectedErrors.filter(e => e.type === 'navigation').map(convertToErrorDetail)
               },
               errorPatterns: [],
               roleComparison: {
                 mostProblematicRole: this.findMostProblematicRole(testResults),
-                roleErrorCounts: testResults.errorsByRole
+                leastProblematicRole: '',
+                totalRoles: Object.keys(testResults.errorsByRole || {}).length,
+                roleErrorCounts: testResults.errorsByRole,
+                sharedIssues: [],
+                roleSpecificIssues: {}
               },
               prioritizedActionItems: [],
-              detailedFindings: []
+              summary: { 
+                totalErrors: detectedErrors.length, 
+                errorsByType: {
+                  runtime: detectedErrors.filter(e => e.type === 'runtime').length,
+                  network: detectedErrors.filter(e => e.type === 'network').length,
+                  rendering: detectedErrors.filter(e => e.type === 'rendering').length,
+                  navigation: detectedErrors.filter(e => e.type === 'navigation').length
+                },
+                criticalErrors: detectedErrors.filter(e => e.severity === 'critical').length,
+                highPriorityErrors: detectedErrors.filter(e => e.severity === 'high').length,
+                mediumPriorityErrors: detectedErrors.filter(e => e.severity === 'medium').length,
+                lowPriorityErrors: detectedErrors.filter(e => e.severity === 'low').length
+              },
+              roleSpecificErrors: {},
+              fixSuggestions: [],
+              testCoverage: {} as any,
+              generatedAt: new Date(),
+              testEnvironment: 'development' as any
             },
             executiveSummary,
             developerTaskList,
@@ -1083,7 +1125,8 @@ export class ComprehensiveTestRunner extends EventEmitter {
         browserInfo: {
           name: 'node',
           version: process.version,
-          platform: process.platform
+          platform: process.platform,
+          viewport: { width: 1920, height: 1080 }
         }
       });
     });
@@ -1103,7 +1146,8 @@ export class ComprehensiveTestRunner extends EventEmitter {
         browserInfo: {
           name: 'node',
           version: process.version,
-          platform: process.platform
+          platform: process.platform,
+          viewport: { width: 1920, height: 1080 }
         }
       });
     });

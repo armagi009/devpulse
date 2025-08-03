@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 /**
  * GitHub Repositories API Route
  * Handles repository listing and details

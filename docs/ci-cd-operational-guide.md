@@ -90,6 +90,10 @@ Before starting, ensure you have:
    - Sign up for your chosen provider
    - Create a new database project
    - Get the connection string (DATABASE_URL)
+   - **If using Supabase:** Also get the API keys from Settings → API:
+     - `NEXT_PUBLIC_SUPABASE_URL`
+     - `NEXT_PUBLIC_SUPABASE_ANON_KEY` 
+     - `SUPABASE_SERVICE_ROLE_KEY`
 
 3. **Test database connection locally**
    ```bash
@@ -109,6 +113,21 @@ Before starting, ensure you have:
    - Get the connection string (REDIS_URL)
 
 ## 🔐 Phase 3: External Service Setup
+
+**🚀 QUICK START: Run the setup assistant for guided setup:**
+```bash
+cd devpulse
+npm run setup:external-services
+```
+
+**📋 DETAILED CHECKLIST: See the comprehensive checklist:**
+- [External Services Checklist](./external-services-checklist.md)
+- [External Services Setup Summary](./external-services-setup-summary.md)
+
+**🔍 VERIFICATION: Check your configuration:**
+```bash
+npm run verify:external-services
+```
 
 ### Step 3.1: Vercel Setup
 
@@ -145,6 +164,10 @@ Before starting, ensure you have:
    DATABASE_URL=your-production-database-url  # From Phase 2!
    REDIS_URL=your-production-redis-url        # From Phase 2!
    ENCRYPTION_KEY=your-32-character-encryption-key
+   # If using Supabase, also add:
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
    ```
 
 5. **Trigger Successful Deployment**

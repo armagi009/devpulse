@@ -49,6 +49,7 @@ export const TourProvider: React.FC<TourProviderProps> = ({
   // Load completed tours from local storage
   const loadCompletedTours = (): Record<string, boolean> => {
     try {
+      if (typeof window === 'undefined') return {};
       const stored = localStorage.getItem(TOUR_STORAGE_KEY);
       return stored ? JSON.parse(stored) : {};
     } catch (error) {
@@ -72,6 +73,8 @@ export const TourProvider: React.FC<TourProviderProps> = ({
 
   // Save completed tours to local storage
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const completedState = Object.entries(tours).reduce(
       (acc, [id, tour]) => {
         acc[id] = tour.completed || false;

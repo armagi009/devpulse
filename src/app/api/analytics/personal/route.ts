@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 /**
  * Personal Analytics API Route
  * Provides comprehensive personal analytics data
@@ -90,8 +92,8 @@ export async function GET(request: NextRequest) {
     
     // Create time range
     const timeRange = {
-      start: new Date(validatedStartDate),
-      end: new Date(validatedEndDate),
+      start: new Date(validatedStartDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)),
+      end: new Date(validatedEndDate || new Date()),
     };
     
     // Initialize response data

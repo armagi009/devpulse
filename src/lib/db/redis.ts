@@ -28,10 +28,12 @@ export function getRedisClient(): Redis {
     const redisUrl = env().REDIS_URL;
     
     if (!redisUrl) {
-      throw new Error('Redis URL not configured');
+      // For development/build, use a local Redis instance or mock
+      console.warn('Redis URL not configured, using localhost:6379');
+      redisClient = new Redis('redis://localhost:6379', redisOptions);
+    } else {
+      redisClient = new Redis(redisUrl, redisOptions);
     }
-    
-    redisClient = new Redis(redisUrl, redisOptions);
     
     // Handle connection errors
     redisClient.on('error', (error) => {

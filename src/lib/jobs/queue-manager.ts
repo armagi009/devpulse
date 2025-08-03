@@ -3,7 +3,7 @@
  * Manages job queues for background processing
  */
 
-import { Queue, Worker, QueueScheduler, Job, QueueEvents } from 'bullmq';
+import { Queue, Worker, Job, QueueEvents } from 'bullmq';
 import { getRedisClient } from '@/lib/db/redis';
 import { env } from '@/lib/utils/env';
 
@@ -59,8 +59,10 @@ export interface JobProgress {
 // Queue configuration
 const queueConfig = {
   connection: {
-    // Use Redis client connection
-    client: getRedisClient(),
+    // Use Redis client connection - lazy load to avoid build issues
+    get client() {
+      return getRedisClient();
+    },
   },
   defaultJobOptions: {
     attempts: 3,
@@ -82,7 +84,6 @@ const queueConfig = {
 // Queue instances
 const queues: Record<string, Queue> = {};
 const workers: Record<string, Worker> = {};
-const schedulers: Record<string, QueueScheduler> = {};
 const queueEvents: Record<string, QueueEvents> = {};
 
 /**
@@ -95,11 +96,6 @@ export function initializeQueue(queueName: string): Queue {
     
     // Create queue events
     queueEvents[queueName] = new QueueEvents(queueName, {
-      connection: queueConfig.connection,
-    });
-    
-    // Create queue scheduler
-    schedulers[queueName] = new QueueScheduler(queueName, {
       connection: queueConfig.connection,
     });
     
@@ -234,11 +230,6 @@ export async function closeQueues(): Promise<void> {
     Object.values(workers).map(worker => worker.close())
   );
   
-  // Close all schedulers
-  await Promise.all(
-    Object.values(schedulers).map(scheduler => scheduler.close())
-  );
-  
   // Close all queue events
   await Promise.all(
     Object.values(queueEvents).map(events => events.close())
@@ -251,7 +242,6 @@ export async function closeQueues(): Promise<void> {
   
   // Clear instances
   Object.keys(workers).forEach(key => delete workers[key]);
-  Object.keys(schedulers).forEach(key => delete schedulers[key]);
   Object.keys(queueEvents).forEach(key => delete queueEvents[key]);
   Object.keys(queues).forEach(key => delete queues[key]);
 }

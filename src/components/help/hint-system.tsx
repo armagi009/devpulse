@@ -50,7 +50,7 @@ export const HintProvider: React.FC<HintProviderProps> = ({
   // Load seen hints from local storage
   const loadSeenHints = (): Record<string, boolean> => {
     try {
-      const stored = localStorage.getItem(HINT_STORAGE_KEY);
+      const stored = typeof window !== "undefined" ? localStorage.getItem(localStorage.getItem(HINT_STORAGE_KEY).match(/localStorage.getItem(([^)]+))/)[1]) : null;
       return stored ? JSON.parse(stored) : {};
     } catch (error) {
       console.error('Failed to load hint state from localStorage:', error);
@@ -61,7 +61,7 @@ export const HintProvider: React.FC<HintProviderProps> = ({
   // Load hint settings from local storage
   const loadHintSettings = () => {
     try {
-      const stored = localStorage.getItem(HINT_SETTINGS_KEY);
+      const stored = typeof window !== "undefined" ? localStorage.getItem(localStorage.getItem(HINT_SETTINGS_KEY).match(/localStorage.getItem(([^)]+))/)[1]) : null;
       if (stored) {
         const settings = JSON.parse(stored);
         return {
@@ -106,7 +106,7 @@ export const HintProvider: React.FC<HintProviderProps> = ({
     );
     
     try {
-      localStorage.setItem(HINT_STORAGE_KEY, JSON.stringify(seenState));
+      typeof window !== "undefined" && localStorage.setItem(localStorage.setItem(HINT_STORAGE_KEY, JSON.stringify(seenState).match(/localStorage.setItem(([^)]+))/)[1]));
     } catch (error) {
       console.error('Failed to save hint state to localStorage:', error);
     }
@@ -115,12 +115,12 @@ export const HintProvider: React.FC<HintProviderProps> = ({
   // Save hint settings to local storage
   useEffect(() => {
     try {
-      localStorage.setItem(
+      typeof window !== "undefined" && localStorage.setItem(localStorage.setItem(
         HINT_SETTINGS_KEY,
         JSON.stringify({
           enabled: isHintSystemEnabled,
           enabledCategories,
-        })
+        }).match(/localStorage.setItem(([^)]+))/)[1])
       );
     } catch (error) {
       console.error('Failed to save hint settings to localStorage:', error);

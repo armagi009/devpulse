@@ -5,7 +5,7 @@
 
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/auth-config';
 import { checkPermission } from '@/lib/auth/role-service';
 import { PERMISSIONS } from '@/lib/types/roles';
 import { prisma } from '@/lib/db/prisma';
@@ -34,9 +34,9 @@ export default async function SystemSettingsPage() {
   }
   
   // Get system settings with error handling
-  let systemSettings = [];
-  let appMode = null;
-  let mockDataSets = [];
+  let systemSettings: any[] = [];
+  let appMode: any = null;
+  let mockDataSets: any[] = [];
 
   try {
     systemSettings = await prisma.systemSettings.findMany();

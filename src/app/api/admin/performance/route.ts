@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 /**
  * API Performance Monitoring Endpoint
  * Provides metrics on API response times and cache hit rates
@@ -5,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/auth-config';
 import { ErrorCode } from '@/lib/types/api';
 import { getRecentMetrics, getAverageResponseTime } from '@/lib/utils/api-performance';
 import { hasPermission } from '@/lib/auth/permission-middleware';
@@ -35,7 +37,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Check if user has admin permission
-    const hasAdminPermission = await hasPermission(session.user.id, 'admin:view_performance');
+    const hasAdminPermission = await hasPermission(session.user.role, ['admin:view_performance']);
     
     if (!hasAdminPermission) {
       return NextResponse.json(

@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/auth-config';
 import { getDevModeConfig } from '@/lib/config/dev-mode';
 
 /**
@@ -26,6 +26,13 @@ function hasRequiredRole(userRole: string, requiredRoles: string[]) {
   }
   
   return normalizedRequiredRoles.includes(normalizedUserRole);
+}
+
+/**
+ * Check if user has permission
+ */
+export async function hasPermission(userRole: string, requiredRoles: string[]): Promise<boolean> {
+  return hasRequiredRole(userRole, requiredRoles);
 }
 
 /**

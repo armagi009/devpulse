@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 /**
  * API endpoint for listing users
  * Restricted to administrators
@@ -5,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/auth-config';
 import { prisma } from '@/lib/db/prisma';
 import { hasPermission } from '@/lib/auth/role-service';
 import { PERMISSIONS } from '@/lib/types/roles';

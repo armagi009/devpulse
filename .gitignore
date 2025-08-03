@@ -12,6 +12,14 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
+/e2e-tests/test-data/artifacts/*
+!/e2e-tests/test-data/artifacts/.gitkeep
+/e2e-tests/test-data/error-reports/*
+!/e2e-tests/test-data/error-reports/.gitkeep
+/e2e-tests/test-data/*.json
+/e2e-tests/test-data/*.xml
 
 # next.js
 /.next/
@@ -39,3 +47,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/src/generated/prisma

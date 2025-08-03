@@ -4,7 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/auth-config';
 import { prisma } from '@/lib/db/prisma';
 import { z } from 'zod';
 import { UserRole } from '@/lib/types/roles';

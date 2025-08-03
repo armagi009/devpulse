@@ -6,7 +6,7 @@
 import { prisma } from '@/lib/db/prisma';
 import { UserRole, PERMISSIONS, DEFAULT_ROLE_PERMISSIONS } from '@/lib/types/roles';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/auth-config';
 
 /**
  * Check if a user has a specific permission
