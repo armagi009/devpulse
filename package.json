@@ -74,10 +74,10 @@
     "react-responsive": "^10.0.1",
     "recharts": "^2.12.1",
     "tailwind-merge": "^2.6.0",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "@faker-js/faker": "^9.9.0"
   },
   "devDependencies": {
-    "@faker-js/faker": "^9.9.0",
     "@playwright/test": "^1.40.0",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^14.2.1",
