@@ -16,7 +16,14 @@
     "env": {
       "SKIP_ENV_VALIDATION": "1",
       "SKIP_TYPE_CHECK": "true",
-      "NODE_OPTIONS": "--max-old-space-size=4096"
+      "NODE_OPTIONS": "--max-old-space-size=4096",
+      "ENABLE_PRODUCTION_MOCK": "true",
+      "NEXT_PUBLIC_ENABLE_PRODUCTION_MOCK": "true",
+      "NEXT_PUBLIC_USE_MOCK_AUTH": "true",
+      "NEXT_PUBLIC_USE_MOCK_API": "true",
+      "NEXT_PUBLIC_USE_MOCK_DATA": "true",
+      "NEXT_PUBLIC_SHOW_MOCK_INDICATOR": "true",
+      "NEXT_PUBLIC_MOCK_MODE_MESSAGE": "Demo Mode - Using Simulated Data"
     }
   }
 }

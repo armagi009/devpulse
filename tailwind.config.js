@@ -1,12 +1,35 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
+  darkMode: ["class", '[data-theme="dark"]'],
   content: [
+    // Comprehensive content paths for production
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
     './src/lib/**/*.{js,ts,jsx,tsx}',
+    './src/styles/**/*.{css,scss}',
+    
+    // Ensure all component directories are included
+    './src/components/ui/**/*.{js,ts,jsx,tsx}',
+    './src/components/charts/**/*.{js,ts,jsx,tsx}',
+    './src/components/layout/**/*.{js,ts,jsx,tsx}',
+    './src/components/admin/**/*.{js,ts,jsx,tsx}',
+    './src/components/auth/**/*.{js,ts,jsx,tsx}',
+    './src/components/demo/**/*.{js,ts,jsx,tsx}',
+    './src/components/github/**/*.{js,ts,jsx,tsx}',
+    './src/components/help/**/*.{js,ts,jsx,tsx}',
+    './src/components/mock/**/*.{js,ts,jsx,tsx}',
+    './src/components/providers/**/*.{js,ts,jsx,tsx}',
+    './src/components/retrospective/**/*.{js,ts,jsx,tsx}',
+    './src/components/settings/**/*.{js,ts,jsx,tsx}',
+    './src/components/team/**/*.{js,ts,jsx,tsx}',
+    './src/components/analytics/**/*.{js,ts,jsx,tsx}',
   ],
-  darkMode: ["class", '[data-theme="dark"]'],
+  prefix: "",
   theme: {
     container: {
       center: true,
@@ -184,7 +207,6 @@ export default {
     },
   },
   plugins: [
-    // Add plugins here if needed
     function ({ addUtilities }) {
       const newUtilities = {
         '.scrollbar-hide': {
@@ -223,5 +245,109 @@ export default {
     },
     // Add container queries plugin
     require('@tailwindcss/container-queries'),
+  ],
+  // Production optimizations
+  corePlugins: {
+    preflight: true,
+  },
+  // Safelist for production - ensure dynamic classes aren't purged
+  safelist: [
+    // Mock mode indicators
+    'bg-yellow-100',
+    'text-yellow-800',
+    'border-yellow-300',
+    'bg-blue-100',
+    'text-blue-800',
+    'border-blue-300',
+    'bg-green-100',
+    'text-green-800',
+    'border-green-300',
+    
+    // Common utility classes that might be dynamically generated
+    'text-sm',
+    'text-xs',
+    'text-lg',
+    'text-xl',
+    'font-medium',
+    'font-semibold',
+    'font-bold',
+    'rounded-md',
+    'rounded-lg',
+    'rounded-full',
+    'px-2',
+    'px-3',
+    'px-4',
+    'px-6',
+    'py-1',
+    'py-2',
+    'py-3',
+    'py-4',
+    'mb-2',
+    'mb-4',
+    'mb-6',
+    'mt-2',
+    'mt-4',
+    'mt-6',
+    'ml-2',
+    'ml-4',
+    'mr-2',
+    'mr-4',
+    
+    // Layout classes
+    'w-full',
+    'h-full',
+    'flex',
+    'flex-col',
+    'flex-row',
+    'items-center',
+    'items-start',
+    'items-end',
+    'justify-center',
+    'justify-between',
+    'justify-start',
+    'justify-end',
+    'space-x-2',
+    'space-x-4',
+    'space-y-2',
+    'space-y-4',
+    'grid',
+    'grid-cols-1',
+    'grid-cols-2',
+    'grid-cols-3',
+    'grid-cols-4',
+    'grid-cols-6',
+    'grid-cols-12',
+    'gap-2',
+    'gap-4',
+    'gap-6',
+    
+    // Interactive states
+    'hover:bg-gray-100',
+    'hover:bg-blue-50',
+    'hover:text-blue-600',
+    'focus:outline-none',
+    'focus:ring-2',
+    'focus:ring-blue-500',
+    'active:bg-gray-200',
+    
+    // Status colors
+    'text-red-600',
+    'text-green-600',
+    'text-yellow-600',
+    'text-blue-600',
+    'bg-red-50',
+    'bg-green-50',
+    'bg-yellow-50',
+    'bg-blue-50',
+    
+    // Chart and data visualization classes
+    'opacity-50',
+    'opacity-75',
+    'opacity-100',
+    'transform',
+    'transition-all',
+    'duration-200',
+    'duration-300',
+    'ease-in-out',
   ],
 };
