@@ -215,7 +215,7 @@ export class ApiIntegrationValidator {
       }
 
       this.errorDetector.addReproductionStep(`Completed API integration validation. Tested ${results.length} endpoints.`);
-      
+
       return results;
     } catch (error) {
       this.errorDetector.addReproductionStep(`API integration validation failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -228,7 +228,7 @@ export class ApiIntegrationValidator {
    */
   async validateApiEndpoint(endpointTest: ApiEndpointTest, options: ApiIntegrationValidationOptions): Promise<ApiValidationResult> {
     const startTime = Date.now();
-    
+
     const result: ApiValidationResult = {
       endpoint: endpointTest.endpoint,
       method: endpointTest.method,
@@ -257,7 +257,7 @@ export class ApiIntegrationValidator {
       result.actualStatus = typeof response.status === 'function' ? response.status() : (response.status as unknown as number);
       result.responseTime = Date.now() - startTime;
       result.responseSize = (await response.text()).length;
-      
+
       if (options.captureResponses) {
         try {
           result.responseBody = await response.json();
@@ -309,7 +309,7 @@ export class ApiIntegrationValidator {
    */
   private async testApiEndpointDirect(endpointTest: ApiEndpointTest): Promise<any> {
     const url = `${this.page.url().split('/').slice(0, 3).join('/')}${endpointTest.endpoint}`;
-    
+
     const requestOptions: any = {
       method: endpointTest.method,
       headers: {
@@ -344,7 +344,7 @@ export class ApiIntegrationValidator {
 
       // Should return 401 or 403 for protected endpoints
       const isProperlyProtected = unauthenticatedResponse.status() === 401 || unauthenticatedResponse.status() === 403;
-      
+
       if (!isProperlyProtected) {
         this.errorDetector.addReproductionStep(
           `Authentication test failed: ${endpointTest.endpoint} should require authentication but returned ${unauthenticatedResponse.status()}`
@@ -369,7 +369,7 @@ export class ApiIntegrationValidator {
 
       const responseBody = await response.text();
       let data: any;
-      
+
       try {
         data = JSON.parse(responseBody);
       } catch {
@@ -379,12 +379,12 @@ export class ApiIntegrationValidator {
 
       // Check for mock data indicators
       const hasMockData = this.detectMockDataPatterns(data);
-      
+
       // Check for realistic data structure
       const hasRealisticStructure = this.validateDataStructure(data, endpointTest.endpoint);
-      
+
       const isValid = hasMockData && hasRealisticStructure;
-      
+
       if (!isValid) {
         this.errorDetector.addReproductionStep(
           `Mock data validation failed for ${endpointTest.endpoint}: ` +
@@ -406,7 +406,7 @@ export class ApiIntegrationValidator {
     try {
       // Test with invalid data to trigger error states
       const invalidPayload = { invalid: 'data', test: true };
-      
+
       const errorResponse = await this.page.request.fetch(
         `${this.page.url().split('/').slice(0, 3).join('/')}${endpointTest.endpoint}`,
         {
@@ -420,7 +420,7 @@ export class ApiIntegrationValidator {
 
       // Check if error is handled properly (should return 4xx status with error message)
       const hasProperErrorHandling = errorResponse.status() >= 400 && errorResponse.status() < 500;
-      
+
       if (hasProperErrorHandling) {
         try {
           const errorBody = await errorResponse.json();
@@ -455,19 +455,19 @@ export class ApiIntegrationValidator {
     try {
       // Look for components that might trigger this API call
       const triggerElements = await this.findApiTriggerElements(endpointTest.endpoint);
-      
+
       if (triggerElements.length > 0) {
         result.componentTriggered = true;
-        
+
         // Test the first trigger element
         const trigger = triggerElements[0];
-        
+
         // Check for loading state before triggering
         const loadingSelectors = ['.loading', '.spinner', '[data-loading="true"]', '.skeleton'];
-        
+
         // Trigger the API call
         await trigger.click();
-        
+
         // Check for loading state
         for (const selector of loadingSelectors) {
           if (await this.page.locator(selector).isVisible()) {
@@ -475,16 +475,16 @@ export class ApiIntegrationValidator {
             break;
           }
         }
-        
+
         // Wait for API call to complete
         await this.page.waitForTimeout(2000);
-        
+
         // Check if data is displayed
         result.dataDisplayed = await this.checkDataDisplayed();
-        
+
         // Check if UI updated correctly
         result.uiUpdatedCorrectly = await this.checkUIUpdated();
-        
+
         // Test error handling by simulating network failure
         // (This would require more complex setup in a real scenario)
         result.errorHandlingWorking = await this.testComponentErrorHandling(trigger);
@@ -516,7 +516,7 @@ export class ApiIntegrationValidator {
 
       // Test login flow
       result.loginSuccess = await this.testLoginFlow(provider);
-      
+
       // Test token handling
       if (result.loginSuccess) {
         result.tokenReceived = await this.testTokenHandling();
@@ -559,22 +559,22 @@ export class ApiIntegrationValidator {
 
       // Detect current mode
       result.currentMode = await this.detectCurrentDataMode();
-      
+
       // Check for mock data patterns
       result.mockDataDetected = await this.detectMockDataInUI();
-      
+
       // Check for real data patterns
       result.realDataDetected = await this.detectRealDataInUI();
-      
+
       // Check mode consistency
       result.modeConsistency = await this.checkModeConsistency(result.currentMode);
-      
+
       // Test mode switching if available
       result.switchingWorks = await this.testDataModeSwitching();
-      
+
       // Assess data quality
       result.dataQuality = await this.assessDataQuality();
-      
+
       // Find inconsistencies
       result.inconsistencies = await this.findDataInconsistencies();
 
@@ -612,12 +612,12 @@ export class ApiIntegrationValidator {
    */
   private async discoverApiEndpoints(): Promise<string[]> {
     const endpoints = new Set<string>();
-    
+
     // Get all endpoints that were called during page load
     for (const [endpoint] of this.apiRequests) {
       endpoints.add(endpoint);
     }
-    
+
     return Array.from(endpoints);
   }
 
@@ -641,9 +641,9 @@ export class ApiIntegrationValidator {
    */
   private detectMockDataPatterns(data: any): boolean {
     if (!data) return false;
-    
+
     const dataStr = JSON.stringify(data).toLowerCase();
-    
+
     // Look for mock data indicators
     const mockPatterns = [
       'mock',
@@ -656,7 +656,7 @@ export class ApiIntegrationValidator {
       'john doe',
       'jane smith'
     ];
-    
+
     return mockPatterns.some(pattern => dataStr.includes(pattern));
   }
 
@@ -665,7 +665,7 @@ export class ApiIntegrationValidator {
    */
   private validateDataStructure(data: any, endpoint: string): boolean {
     if (!data) return false;
-    
+
     // Define expected structures for different endpoints
     const expectedStructures: { [key: string]: string[] } = {
       '/api/users/profile': ['id', 'name', 'email'],
@@ -673,14 +673,14 @@ export class ApiIntegrationValidator {
       '/api/analytics/dashboard': ['metrics', 'charts'],
       '/api/github/repositories': ['name', 'url', 'language']
     };
-    
+
     const expectedFields = expectedStructures[endpoint];
     if (!expectedFields) return true; // Unknown endpoint, assume valid
-    
+
     if (Array.isArray(data)) {
       return data.length === 0 || expectedFields.some(field => data[0].hasOwnProperty(field));
     }
-    
+
     return expectedFields.some(field => data.hasOwnProperty(field));
   }
 
@@ -697,13 +697,13 @@ export class ApiIntegrationValidator {
       '.refresh-button',
       '.load-more'
     ];
-    
+
     const elements = [];
     for (const selector of selectors) {
       const found = await this.page.locator(selector).all();
       elements.push(...found);
     }
-    
+
     return elements;
   }
 
@@ -719,12 +719,12 @@ export class ApiIntegrationValidator {
       '.list-item',
       '[data-testid*="data"]'
     ];
-    
+
     for (const selector of dataSelectors) {
       const count = await this.page.locator(selector).count();
       if (count > 0) return true;
     }
-    
+
     return false;
   }
 
@@ -739,13 +739,13 @@ export class ApiIntegrationValidator {
       '[data-updated="true"]',
       '.fresh-data'
     ];
-    
+
     for (const selector of updatedSelectors) {
       if (await this.page.locator(selector).isVisible()) {
         return true;
       }
     }
-    
+
     // Check if loading states are gone
     const loadingSelectors = ['.loading', '.spinner', '.skeleton'];
     for (const selector of loadingSelectors) {
@@ -753,7 +753,7 @@ export class ApiIntegrationValidator {
         return false; // Still loading
       }
     }
-    
+
     return true;
   }
 
@@ -770,13 +770,13 @@ export class ApiIntegrationValidator {
         '[role="alert"]',
         '.error-state'
       ];
-      
+
       for (const selector of errorSelectors) {
         if (await this.page.locator(selector).count() > 0) {
           return true;
         }
       }
-      
+
       return false;
     } catch {
       return false;

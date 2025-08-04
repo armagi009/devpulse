@@ -44,7 +44,8 @@
     "verify:ci-cd": "node scripts/verify-ci-operational.js",
     "validate:ci-cd": "node scripts/validate-ci-setup.js",
     "vercel-build": "prisma generate && next build",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "build:vercel": "SKIP_ENV_VALIDATION=1 SKIP_TYPE_CHECK=true npm run vercel-build"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

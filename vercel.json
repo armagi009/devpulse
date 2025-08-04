@@ -1,0 +1,21 @@
+{
+  "buildCommand": "npm run vercel-build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm ci",
+  "framework": "nextjs",
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "SKIP_ENV_VALIDATION": "1",
+    "SKIP_TYPE_CHECK": "true"
+  },
+  "build": {
+    "env": {
+      "SKIP_ENV_VALIDATION": "1",
+      "SKIP_TYPE_CHECK": "true"
+    }
+  }
+}

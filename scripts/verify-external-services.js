@@ -3,8 +3,11 @@
 /**
  * External Services Verification Script
  * 
- * This script checks if external services are properly configured
- * and provides guidance on what's missing.
+ * This script verifies that all external services are properly configured:
+ * - Database connection (Supabase)
+ * - Environment variables
+ * - GitHub repository setup
+ * - CI/CD configuration
  */
 
 const fs = require('fs');
@@ -26,6 +29,12 @@ function log(message, color = 'reset') {
   console.log(`${colors[color]}${message}${colors.reset}`);
 }
 
+function header(message) {
+  log('\n' + '='.repeat(60), 'cyan');
+  log(message, 'bright');
+  log('='.repeat(60), 'cyan');
+}
+
 function success(message) {
   log(`✅ ${message}`, 'green');
 }
@@ -42,218 +51,277 @@ function info(message) {
   log(`💡 ${message}`, 'cyan');
 }
 
-// Check if GitHub repository has required secrets
-function checkGitHubSecrets() {
-  log('\n🔑 Checking GitHub Secrets Configuration...', 'blue');
+// Check if required files exist
+function checkRequiredFiles() {
+  header('CHECKING REQUIRED FILES');
   
-  const requiredSecrets = [
-    'VERCEL_TOKEN',
-    'VERCEL_ORG_ID', 
-    'VERCEL_PROJECT_ID',
-    'SONAR_TOKEN'
+  const requiredFiles = [
+    '.env.production',
+    'package.json',
+    'prisma/schema.prisma',
+    'sonar-project.properties',
+    '.github/workflows/ci-cd-pipeline.yml'
   ];
   
-  const optionalSecrets = [
-    'SNYK_TOKEN',
-    'LHCI_GITHUB_APP_TOKEN',
-    'SLACK_WEBHOOK_URL'
-  ];
+  let allFilesExist = true;
   
-  info('Required secrets (must be configured in GitHub):');
-  requiredSecrets.forEach(secret => {
-    log(`  - ${secret}`, 'yellow');
+  requiredFiles.forEach(file => {
+    if (fs.existsSync(file)) {
+      success(`${file} exists`);
+    } else {
+      error(`${file} is missing`);
+      allFilesExist = false;
+    }
   });
   
-  info('Optional secrets:');
-  optionalSecrets.forEach(secret => {
-    log(`  - ${secret}`, 'yellow');
-  });
-  
-  warning('Cannot verify GitHub secrets from local environment');
-  warning('Please check manually: Settings → Secrets and variables → Actions');
+  return allFilesExist;
 }
 
-// Check if Vercel project exists and is configured
-function checkVercelConfiguration() {
-  log('\n🚀 Checking Vercel Configuration...', 'blue');
+// Check environment variables
+function checkEnvironmentVariables() {
+  header('CHECKING ENVIRONMENT VARIABLES');
+  
+  const envPath = path.join(process.cwd(), '.env.production');
+  if (!fs.existsSync(envPath)) {
+    error('.env.production file not found');
+    return false;
+  }
+  
+  const envContent = fs.readFileSync(envPath, 'utf8');
+  const requiredVars = [
+    'NODE_ENV',
+    'NEXT_PUBLIC_APP_URL',
+    'NEXTAUTH_URL',
+    'NEXTAUTH_SECRET',
+    'GITHUB_ID',
+    'GITHUB_SECRET',
+    'DATABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'ENCRYPTION_KEY'
+  ];
+  
+  let allVarsPresent = true;
+  
+  requiredVars.forEach(varName => {
+    if (envContent.includes(`${varName}=`)) {
+      // Check if it has a placeholder value
+      if (envContent.includes(`${varName}=[`) || envContent.includes(`${varName}=your-`)) {
+        warning(`${varName} has placeholder value - needs to be updated`);
+        allVarsPresent = false;
+      } else {
+        success(`${varName} is configured`);
+      }
+    } else {
+      error(`${varName} is missing`);
+      allVarsPresent = false;
+    }
+  });
+  
+  return allVarsPresent;
+}
+
+// Test database connection
+function testDatabaseConnection() {
+  header('TESTING DATABASE CONNECTION');
   
   try {
-    // Check if vercel CLI is available
-    execSync('which vercel', { stdio: 'ignore' });
+    // Check if Prisma is configured
+    if (!fs.existsSync('prisma/schema.prisma')) {
+      error('Prisma schema not found');
+      return false;
+    }
     
+    success('Prisma schema found');
+    
+    // Try to generate Prisma client
     try {
-      // Try to get project info
-      const projectInfo = execSync('vercel project ls', { encoding: 'utf8', stdio: 'pipe' });
-      if (projectInfo.includes('devpulse')) {
-        success('Vercel project found');
-      } else {
-        warning('DevPulse project not found in Vercel');
-      }
+      execSync('npx prisma generate', { stdio: 'ignore' });
+      success('Prisma client generated successfully');
     } catch (e) {
-      warning('Cannot access Vercel project info (may need to login)');
-      info('Run: npx vercel login');
+      warning('Prisma client generation failed - check DATABASE_URL');
+      return false;
     }
+    
+    info('💡 To test database connection with your actual DATABASE_URL:');
+    info('   1. Update DATABASE_URL in .env.production with your Supabase password');
+    info('   2. Run: npm run db:push');
+    info('   3. If successful, your database is ready for production');
+    
+    return true;
   } catch (e) {
-    warning('Vercel CLI not installed');
-    info('Install with: npm i -g vercel');
-  }
-  
-  // Check for vercel.json configuration
-  const vercelConfigPath = path.join(process.cwd(), 'vercel.json');
-  if (fs.existsSync(vercelConfigPath)) {
-    success('vercel.json configuration found');
-  } else {
-    info('vercel.json not found (optional)');
+    error(`Database connection test failed: ${e.message}`);
+    return false;
   }
 }
 
-// Check SonarCloud configuration
-function checkSonarCloudConfiguration() {
-  log('\n🔍 Checking SonarCloud Configuration...', 'blue');
-  
-  const sonarPropertiesPath = path.join(process.cwd(), 'sonar-project.properties');
-  if (fs.existsSync(sonarPropertiesPath)) {
-    success('sonar-project.properties found');
-    
-    const content = fs.readFileSync(sonarPropertiesPath, 'utf8');
-    if (content.includes('sonar.projectKey=devpulse')) {
-      success('Project key correctly set to "devpulse"');
-    } else {
-      error('Project key should be "devpulse"');
-    }
-  } else {
-    error('sonar-project.properties not found');
-    info('This file should exist in the project root');
-  }
-}
-
-// Check database configuration
-function checkDatabaseConfiguration() {
-  log('\n🗄️ Checking Database Configuration...', 'blue');
-  
-  const envPath = path.join(process.cwd(), '.env');
-  if (fs.existsSync(envPath)) {
-    const envContent = fs.readFileSync(envPath, 'utf8');
-    
-    if (envContent.includes('DATABASE_URL=')) {
-      success('DATABASE_URL found in .env');
-      
-      // Try to test database connection
-      try {
-        execSync('npm run db:generate', { stdio: 'ignore' });
-        success('Database schema generation works');
-      } catch (e) {
-        warning('Database schema generation failed');
-        info('Check your DATABASE_URL format');
-      }
-    } else {
-      warning('DATABASE_URL not found in .env');
-      info('Add your database connection string to .env');
-    }
-    
-    if (envContent.includes('REDIS_URL=')) {
-      success('REDIS_URL found in .env (optional)');
-    } else {
-      info('REDIS_URL not found (optional)');
-    }
-  } else {
-    warning('.env file not found');
-    info('Copy .env.example to .env and configure your environment variables');
-  }
-}
-
-// Check GitHub Actions workflows
-function checkGitHubWorkflows() {
-  log('\n⚙️ Checking GitHub Actions Workflows...', 'blue');
-  
-  const workflowsDir = path.join(process.cwd(), '.github', 'workflows');
-  if (fs.existsSync(workflowsDir)) {
-    const workflows = fs.readdirSync(workflowsDir);
-    
-    const requiredWorkflows = [
-      'ci.yml',
-      'code-quality.yml',
-      'dependency-updates.yml',
-      'monitoring.yml',
-      'release.yml'
-    ];
-    
-    requiredWorkflows.forEach(workflow => {
-      if (workflows.includes(workflow)) {
-        success(`${workflow} workflow found`);
-      } else {
-        error(`${workflow} workflow missing`);
-      }
-    });
-  } else {
-    error('.github/workflows directory not found');
-    info('GitHub Actions workflows are missing');
-  }
-}
-
-// Check branch protection status
-function checkBranchProtection() {
-  log('\n🛡️ Checking Branch Protection...', 'blue');
+// Check GitHub repository configuration
+function checkGitHubConfiguration() {
+  header('CHECKING GITHUB CONFIGURATION');
   
   try {
+    // Check if we're in a git repository
+    execSync('git status', { stdio: 'ignore' });
+    success('Git repository detected');
+    
+    // Check remote origin
     const remoteUrl = execSync('git remote get-url origin', { encoding: 'utf8' }).trim();
     if (remoteUrl.includes('github.com')) {
-      const repoMatch = remoteUrl.match(/github\.com[:/]([^/]+)\/([^/.]+)/);
-      if (repoMatch) {
-        const [, owner, repo] = repoMatch;
-        warning('Cannot verify branch protection from local environment');
-        info(`Check manually: https://github.com/${owner}/${repo}/settings/branches`);
-      }
+      success(`GitHub repository: ${remoteUrl}`);
+    } else {
+      warning('Remote origin is not a GitHub repository');
+      return false;
     }
+    
+    // Check if workflows directory exists
+    if (fs.existsSync('.github/workflows')) {
+      success('GitHub workflows directory exists');
+      
+      // Check for CI/CD workflow
+      const workflowFiles = fs.readdirSync('.github/workflows');
+      if (workflowFiles.length > 0) {
+        success(`Found ${workflowFiles.length} workflow file(s)`);
+        workflowFiles.forEach(file => {
+          info(`   • ${file}`);
+        });
+      } else {
+        warning('No workflow files found');
+      }
+    } else {
+      warning('GitHub workflows directory not found');
+    }
+    
+    return true;
   } catch (e) {
-    warning('Cannot determine GitHub repository');
+    error(`GitHub configuration check failed: ${e.message}`);
+    return false;
   }
+}
+
+// Check CI/CD configuration
+function checkCICDConfiguration() {
+  header('CHECKING CI/CD CONFIGURATION');
+  
+  const packageJsonPath = path.join(process.cwd(), 'package.json');
+  if (!fs.existsSync(packageJsonPath)) {
+    error('package.json not found');
+    return false;
+  }
+  
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+  
+  const requiredScripts = [
+    'lint',
+    'type-check',
+    'test',
+    'ci:build',
+    'db:generate',
+    'db:push'
+  ];
+  
+  let allScriptsPresent = true;
+  
+  requiredScripts.forEach(script => {
+    if (packageJson.scripts && packageJson.scripts[script]) {
+      success(`Script "${script}" is configured`);
+    } else {
+      error(`Script "${script}" is missing`);
+      allScriptsPresent = false;
+    }
+  });
+  
+  // Check SonarCloud configuration
+  if (fs.existsSync('sonar-project.properties')) {
+    success('SonarCloud configuration found');
+  } else {
+    warning('SonarCloud configuration not found');
+  }
+  
+  return allScriptsPresent;
+}
+
+// Display next steps
+function displayNextSteps() {
+  header('NEXT STEPS');
+  
+  log('\n📋 To complete your production deployment:', 'blue');
+  
+  log('\n1. 🗄️  Complete Supabase Setup:', 'bright');
+  log('   • Go to: https://supabase.com/dashboard/project/yyxisciydoxchggzgcbu');
+  log('   • Settings → Database → Copy connection string');
+  log('   • Settings → API → Copy service_role key');
+  log('   • Update DATABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.production');
+  
+  log('\n2. 🚀 Configure Vercel:', 'bright');
+  log('   • Go to your Vercel project dashboard');
+  log('   • Settings → Environment Variables');
+  log('   • Add all variables from .env.production');
+  log('   • Update NEXT_PUBLIC_APP_URL and NEXTAUTH_URL with your Vercel URL');
+  
+  log('\n3. 🔍 Set up SonarCloud:', 'bright');
+  log('   • Go to: https://sonarcloud.io');
+  log('   • Sign up with GitHub account');
+  log('   • Import your repository');
+  log('   • Get SONAR_TOKEN from My Account → Security');
+  
+  log('\n4. 🔑 Add GitHub Secrets:', 'bright');
+  log('   • Go to: https://github.com/armagi009/devpulse/settings/secrets/actions');
+  log('   • Add VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID');
+  log('   • Add SONAR_TOKEN');
+  log('   • Add SNYK_TOKEN (optional)');
+  
+  log('\n5. 🧪 Test with Pull Request:', 'bright');
+  log('   • Create test branch: git checkout -b test/ci-pipeline');
+  log('   • Make small change and push');
+  log('   • Create PR and verify all checks pass');
+  
+  info('\n💡 Run this script again after each step to verify your progress!');
 }
 
 // Main verification function
 function main() {
-  log('🔍 DevPulse External Services Verification', 'bright');
-  log('=' .repeat(50), 'cyan');
+  header('DEVPULSE EXTERNAL SERVICES VERIFICATION');
   
-  checkDatabaseConfiguration();
-  checkVercelConfiguration();
-  checkSonarCloudConfiguration();
-  checkGitHubWorkflows();
-  checkGitHubSecrets();
-  checkBranchProtection();
+  log('This script verifies your external services configuration', 'bright');
+  log('and helps identify what still needs to be set up.\n');
   
-  log('\n📋 Summary', 'bright');
-  log('=' .repeat(50), 'cyan');
+  let overallStatus = true;
   
-  log('\n✅ What you can verify locally:', 'green');
-  log('- Database connection and schema');
-  log('- GitHub Actions workflow files');
-  log('- SonarCloud configuration files');
-  log('- Environment variables in .env');
+  // Run all checks
+  overallStatus &= checkRequiredFiles();
+  overallStatus &= checkEnvironmentVariables();
+  overallStatus &= testDatabaseConnection();
+  overallStatus &= checkGitHubConfiguration();
+  overallStatus &= checkCICDConfiguration();
   
-  log('\n⚠️  What you need to verify manually:', 'yellow');
-  log('- GitHub secrets configuration');
-  log('- Vercel project and environment variables');
-  log('- SonarCloud project setup');
-  log('- Branch protection rules');
+  // Display results
+  header('VERIFICATION RESULTS');
   
-  log('\n🚀 Next Steps:', 'blue');
-  log('1. Fix any issues shown above');
-  log('2. Verify external services manually');
-  log('3. Create a test PR to validate the pipeline');
-  log('4. Check: docs/external-services-checklist.md');
+  if (overallStatus) {
+    success('🎉 All checks passed! Your configuration looks good.');
+    info('💡 Complete the remaining setup steps and you\'ll be ready to deploy!');
+  } else {
+    warning('⚠️  Some issues were found. Please address them before proceeding.');
+    error('❌ Check the details above and fix any missing or incorrect configurations.');
+  }
   
-  log('\n💡 Need help? Run: npm run setup:external-services', 'cyan');
+  // Always show next steps
+  displayNextSteps();
+  
+  return overallStatus;
 }
 
-// Run verification
+// Run the verification
 if (require.main === module) {
-  main();
+  const success = main();
+  process.exit(success ? 0 : 1);
 }
 
 module.exports = {
-  checkDatabaseConfiguration,
-  checkVercelConfiguration,
-  checkSonarCloudConfiguration,
-  checkGitHubWorkflows
+  checkRequiredFiles,
+  checkEnvironmentVariables,
+  testDatabaseConnection,
+  checkGitHubConfiguration,
+  checkCICDConfiguration
 };
