@@ -35,7 +35,6 @@
     "db:reset": "prisma migrate reset --force",
     "ci:setup": "npm ci && npm run db:generate && npm run db:push",
     "ci:test": "npm run lint && npm run type-check && npm run test:ci",
-    "ci:build": "npm run db:generate && SKIP_TYPE_CHECK=true npm run build",
     "ci:build:full": "npm run db:generate && npm run build",
     "ci:e2e": "npm run prepare:dry-run && npm run test:e2e:ci",
     "setup:ci-cd": "node scripts/setup-ci-cd.js",

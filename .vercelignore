@@ -1,0 +1,17 @@
+# Vercel ignore file
+.env.local
+.env.development
+.env.test
+node_modules/.cache
+.next/cache
+e2e-tests/
+modern_ui/
+docs/
+scripts/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__/
+coverage/
+.nyc_output/
