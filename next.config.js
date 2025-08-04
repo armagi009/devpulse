@@ -1,3 +1,5 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -30,6 +32,16 @@ const nextConfig = {
   output: 'standalone',
   poweredByHeader: false,
   compress: true,
+  
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Ensure proper module resolution for @ alias
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname, 'src'),
+    };
+    
+    return config;
+  },
 };
 
 module.exports = nextConfig;
