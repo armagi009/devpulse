@@ -10,6 +10,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { NotificationCenterButton } from '@/components/ui/notification-center';
+import { usePermissions } from '@/lib/hooks/usePermissions';
+import { PERMISSIONS } from '@/lib/types/roles';
 
 interface HeaderProps {
   user?: {
@@ -19,6 +21,55 @@ interface HeaderProps {
   } | null;
   sidebarOpen?: boolean;
   setSidebarOpen?: (open: boolean) => void;
+}
+
+// Header Navigation Component
+function HeaderNavigation() {
+  const pathname = usePathname();
+  const { hasPermission } = usePermissions();
+
+  const navigationItems = [
+    {
+      name: 'Dashboard',
+      href: '/dashboard',
+      condition: true,
+    },
+    {
+      name: 'Analytics',
+      href: '/analytics',
+      condition: true,
+    },
+    {
+      name: 'Wellness',
+      href: '/dashboard/wellness',
+      condition: hasPermission(PERMISSIONS.VIEW_PERSONAL_METRICS),
+    },
+    {
+      name: 'Capacity Intelligence',
+      href: '/dashboard/capacity',
+      condition: hasPermission(PERMISSIONS.VIEW_TEAM_METRICS) || hasPermission(PERMISSIONS.VIEW_BURNOUT_TEAM),
+    },
+  ];
+
+  const filteredItems = navigationItems.filter(item => item.condition);
+
+  return (
+    <nav className="hidden md:flex items-center space-x-1">
+      {filteredItems.map((item) => (
+        <Link
+          key={item.name}
+          href={item.href}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+            pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(item.href))
+              ? 'bg-primary text-white shadow-sm'
+              : 'text-foreground hover:bg-primary/10 hover:text-primary'
+          }`}
+        >
+          {item.name}
+        </Link>
+      ))}
+    </nav>
+  );
 }
 
 export default function Header({ user, sidebarOpen, setSidebarOpen }: HeaderProps) {
@@ -101,40 +152,7 @@ export default function Header({ user, sidebarOpen, setSidebarOpen }: HeaderProp
         </div>
 
         {/* Only show navigation if user is authenticated and not on landing page */}
-        {user && pathname !== '/' && (
-          <nav className="hidden md:flex items-center space-x-1">
-            <Link
-              href="/dashboard"
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                pathname === '/dashboard'
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-foreground hover:bg-primary/10 hover:text-primary'
-              }`}
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/analytics"
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                pathname?.startsWith('/analytics')
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-foreground hover:bg-primary/10 hover:text-primary'
-              }`}
-            >
-              Analytics
-            </Link>
-            <Link
-              href="/retrospectives"
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                pathname?.startsWith('/retrospectives')
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-foreground hover:bg-primary/10 hover:text-primary'
-              }`}
-            >
-              Retrospectives
-            </Link>
-          </nav>
-        )}
+        {user && pathname !== '/' && <HeaderNavigation />}
 
         <div className="flex items-center gap-2">
           {user && (
